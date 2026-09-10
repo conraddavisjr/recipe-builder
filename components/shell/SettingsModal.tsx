@@ -1,11 +1,14 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { useShell } from "./ShellProvider";
+import { SettingsForm } from "@/components/settings/SettingsForm";
 
 export function SettingsModal() {
   const { settingsOpen, setSettingsOpen } = useShell();
+  const router = useRouter();
   return (
     <AnimatePresence>
       {settingsOpen && (
@@ -17,7 +20,7 @@ export function SettingsModal() {
           onClick={() => setSettingsOpen(false)}
         >
           <motion.div
-            className="card w-full max-w-lg p-6"
+            className="card scroll-quiet max-h-[90dvh] w-full max-w-xl overflow-y-auto p-6"
             initial={{ y: 16, scale: 0.98 }}
             animate={{ y: 0, scale: 1 }}
             exit={{ y: 16, scale: 0.98 }}
@@ -34,7 +37,15 @@ export function SettingsModal() {
                 <X size={18} />
               </button>
             </div>
-            <p className="mt-4 text-sm text-muted">Settings form arrives in the next chunk.</p>
+            <div className="mt-5">
+              <SettingsForm
+                onRunStarted={() => {
+                  setSettingsOpen(false);
+                  router.push("/");
+                  router.refresh();
+                }}
+              />
+            </div>
           </motion.div>
         </motion.div>
       )}

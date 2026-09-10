@@ -124,3 +124,11 @@ export function ingredientIcon(key: string): LucideIcon {
 }
 
 export { ChefHat, Utensils, UtensilsCrossed, Wind, Wine, Vegan, Feather, Flower, Cloud, Hourglass, Palette, Sandwich, Croissant, Cake, Beer, Dumbbell, HeartPulse, Activity, Ban, ShieldCheck, Popcorn, Zap, Sun, Snowflake, Nut, Torus, Amphora, Mountain };
+
+import { createElement } from "react";
+import type { LucideProps } from "lucide-react";
+
+/** Render a catalog icon by name without creating a component during render. */
+export function CatalogIcon({ name, ...props }: { name: string } & LucideProps) {
+  return createElement(iconByName(name), props);
+}
