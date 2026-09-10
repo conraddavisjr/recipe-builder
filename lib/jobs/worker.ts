@@ -1,6 +1,6 @@
 import { config } from "@/lib/config";
 import * as db from "@/lib/db";
-import { HANDLERS } from "./handlers";
+import { HANDLERS, settleRunIfDone } from "./handlers";
 
 export interface DrainReport {
   processed: number;
@@ -25,17 +25,27 @@ export async function drain(sliceMs = config.workerSliceMs): Promise<DrainReport
   while (Date.now() < softDeadline) {
     const [task] = await db.claimTasks(1);
     if (!task) break;
+    let settled = false;
     try {
       await HANDLERS[task.type](task);
       await db.completeTask(task.id);
       processed++;
+      settled = true;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(`[worker] task ${task.type} ${task.id} attempt ${task.attempts}: ${message}`);
       const outcome = await db.failTask(task, message);
-      if (outcome === "failed") failed++;
+      if (outcome === "failed") {
+        failed++;
+        settled = true;
+      }
     }
+    if (settled && task.run_id) await settleRunIfDone(task.run_id);
   }
+
+  // Self-heal: any run still "rendering" with no open tasks (for example
+  // after a crashed slice) is closed out here.
+  for (const runId of await db.listRenderingRunIds()) await settleRunIfDone(runId);
 
   return { processed, failed, remaining: await db.countQueuedTasks(), elapsed_ms: Date.now() - started };
 }

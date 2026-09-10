@@ -48,3 +48,25 @@ Built:
 - `/inspirations/[id]`: research panel (restaurant and dish verification, menu quote, photo observations, flavor, techniques, sources), ingredient list with verified / inferred / user-provided provenance and confidence, corrections editor, "Re-analyze with my corrections", "Research again", "Cook this at home", delete.
 - `lib/ai/analyzeInspiration.ts`: manual loop with `web_search_20260209` + `web_fetch_20260209` and the photo as an image block, `pause_turn` handled, then a parse call into the analysis schema; `reanalyzeIngredients` folds corrections in with provenance kept.
 - Saving an inspiration queues research automatically; editing marks analysis stale instead of clearing it.
+
+Verified 2026-09-10 in the browser and API:
+- Khao Soi at Dee Dee (Austin): restaurant and dish verified with 9 sources; a deliberately mismatched test (Korean dish name, Sichuan restaurant, Vietnamese-looking photo uploaded direct to storage) was reported as a three-way mismatch rather than invented.
+- Correction "Chicken thigh, bone-in" saved from the UI, re-analysis marked it user_provided and derived the implied ingredients and techniques.
+- "Cook this at home" started an inspiration run from the detail page.
+
+## Chunk 5: generator, similar, history (verified 2026-09-10)
+
+- Generator: prompt asking for a pizza oven the profile does not own; the review pass flagged both drafts, the repair round rebuilt them around owned cookware, rationale explains the substitution. Kept one draft, the other was deleted with its images. Page resumes an unfinished generator run on load.
+- History: status, progress, produced recipes, review outcome, token usage, and the exact prompt.
+- Fixes from live use: run settlement moved into the worker (a handler cannot see its own task as done) plus a self-healing sweep; CSS primitives moved into `@layer components` so utilities override them.
+
+## Known limitations
+
+- Image rendering is sequential per worker slice; a 5-recipe run with a cold ingredient-art cache takes 10-15 minutes locally. Concurrent slices (heartbeat plus self-kick) already overlap safely.
+- No pg_cron registered yet (production only); locally `instrumentation.ts` heartbeats the worker.
+- Similarity is structured scoring, not embeddings; add pgvector if the library grows past a few hundred recipes.
+- Single owner; RLS off by design (steps documented in the migration).
+
+## Next
+
+Chunk 6 (deploy) is deferred by request; the app runs entirely on the local Supabase stack. Chunk 7 polish continues opportunistically.

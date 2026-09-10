@@ -106,8 +106,6 @@ const render_recipe_image: Handler = async (task) => {
       await db.markRecipeImage(imageId, { status: "failed", error: err instanceof Error ? err.message : String(err) });
     }
     throw err;
-  } finally {
-    if (task.run_id) await settleRunIfDone(task.run_id);
   }
 };
 
@@ -123,8 +121,6 @@ const render_ingredient_art: Handler = async (task) => {
       await db.markIngredientArt(key, { status: "failed", error: err instanceof Error ? err.message : String(err) });
     }
     throw err;
-  } finally {
-    if (task.run_id) await settleRunIfDone(task.run_id);
   }
 };
 
@@ -179,11 +175,12 @@ export const HANDLERS: Record<Task["type"], Handler> = {
 };
 
 /**
- * A run is done when all of its tasks have settled. Called after every
- * render; the last one to finish flips the status. Failed renders do not
- * fail the run: the recipe text is still useful without one of its images.
+ * A run is done when all of its tasks have settled. The worker calls this
+ * after it has marked a task done or failed (never from inside a handler,
+ * whose own task row is still "running" at that point). Failed renders do
+ * not fail the run: the recipe text is still useful without one image.
  */
-async function settleRunIfDone(runId: string): Promise<void> {
+export async function settleRunIfDone(runId: string): Promise<void> {
   const { settled } = await db.runTasksSettled(runId);
   if (!settled) return;
   const run = await db.getRun(runId);

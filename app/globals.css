@@ -83,8 +83,10 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Reusable primitives. Kept as classes rather than components for the
-   pieces that are pure styling. */
+/* Reusable primitives live in the components layer so Tailwind utilities
+   (a later layer) can override them: `select w-auto`, `input pl-9`. Unlayered
+   rules would beat utilities regardless of specificity. */
+@layer components {
 .display { font-family: var(--font-display); font-weight: 500; letter-spacing: -0.01em; line-height: 1.1; }
 .eyebrow { font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
 .label { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
@@ -97,9 +99,9 @@ body {
   box-shadow: var(--shadow);
 }
 
-/* Sizing lives in :where() so Tailwind utilities (w-auto, pl-9) can override it. */
-:where(.input, .textarea, .select) { width: 100%; padding: 0.6rem 0.8rem; }
 .input, .textarea, .select {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -165,6 +167,8 @@ body {
 
 /* Thin, quiet scrollbars for drawers and menus. */
 .scroll-quiet { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+
+}
 
 /* Subtle shimmer for pending imagery. */
 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }

@@ -276,6 +276,12 @@ export async function listActiveRuns(): Promise<Run[]> {
   return all.filter((r) => r.status === "queued" || r.status === "generating" || r.status === "rendering");
 }
 
+export async function listRenderingRunIds(): Promise<string[]> {
+  const { data, error } = await getSupabase().from("runs").select("id").eq("user_id", uid).eq("status", "rendering");
+  if (error) fail("listRenderingRunIds", error);
+  return ((data ?? []) as Array<{ id: string }>).map((r) => r.id);
+}
+
 async function runProgress(runId: string): Promise<Run["progress"]> {
   const { data, error } = await getSupabase().from("tasks").select("status").eq("run_id", runId);
   if (error) fail("runProgress", error);

@@ -21,6 +21,29 @@ export function Generator() {
   const [error, setError] = useState<string | null>(null);
   const [kept, setKept] = useState<number | null>(null);
 
+  // Generation takes minutes; if the person navigated away and came back,
+  // pick up the latest generator run that still has undecided drafts.
+  useEffect(() => {
+    let active = true;
+    api<{ runs: Run[] }>("/api/runs")
+      .then(async ({ runs }) => {
+        const latest = runs.find((r) => r.trigger === "generator" && r.status !== "failed");
+        if (!latest || !active) return;
+        const data = await api<{ run: Run; recipes: RecipeCardData[] }>(`/api/runs/${latest.id}`);
+        if (!active) return;
+        const live = data.run.status === "queued" || data.run.status === "generating" || data.run.status === "rendering";
+        if (data.recipes.length > 0 || live) {
+          setRun(data.run);
+          setCandidates(data.recipes);
+          setPrompt((p) => p || data.run.prompt || "");
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
+
   async function start(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -130,8 +153,8 @@ export function Generator() {
             })}
           </div>
           <div className="mt-5 flex items-center justify-between gap-3 border-t border-line pt-4">
-            <p className="text-sm text-muted">{selected.size} of {candidates.length} selected. Unselected drafts are deleted.</p>
-            <button type="button" className="btn btn-primary" onClick={keep} disabled={busy || Boolean(live)}>
+            <p className="text-sm text-muted">{selected.size} of {candidates.length} selected. Unselected drafts are deleted{run?.status === "rendering" ? "; photos keep rendering for the ones you keep" : ""}.</p>
+            <button type="button" className="btn btn-primary" onClick={keep} disabled={busy}>
               {busy ? <LoaderCircle size={16} className="animate-spin" /> : <Check size={16} />} Keep {selected.size || ""} in library
             </button>
           </div>
