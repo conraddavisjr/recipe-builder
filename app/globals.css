@@ -55,49 +55,6 @@
   --seg-tip: #41563d;          --seg-tip-bg: #edf3e9;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #171f1a;
-    --surface: #1e2821;
-    --surface-2: #26312a;
-    --tint: #26312a;
-    --tint-active: #2c3a2c;
-    --ink: #edf0e5;
-    --ink-hover: #d9dfcf;
-    --muted: #9ba79a;
-    --line: #2f3a32;
-    --line-strong: #46534a;
-    --accent: #b5c26a;
-    --accent-soft: #2c3a2c;
-    --accent-ink: #171f1a;
-    --olive-muted: #9aa483;
-    --olive-soft: #aab876;
-    --olive-deep: #b5c26a;
-    --lime: #4b5a2f;
-    --sage: #c6d1b8;
-    --gold: #d2b98a;
-    --warn-bg: #2f2a1f;
-    --warn-fg: #d2b98a;
-    --danger-bg: #3a2320;
-    --danger-line: #5a3630;
-    --danger-fg: #e6a79b;
-    --avoid-bg: #3a2a22;
-    --avoid-line: #6a4a38;
-    --avoid-fg: #e0b79f;
-    --shadow: none;
-    --shadow-lg: 0 12px 28px rgb(0 0 0 / 0.35);
-    --shadow-dialog: 0 20px 100px rgb(0 0 0 / 0.6);
-    --shadow-toast: 0 8px 35px rgb(0 0 0 / 0.5);
-    --backdrop: rgb(0 0 0 / 0.55);
-
-    --seg-ingredient: #b5c26a;  --seg-ingredient-bg: #2c3a2c;
-    --seg-equipment: #a9bcc6;   --seg-equipment-bg: #26333a;
-    --seg-temperature: #e8a084; --seg-temperature-bg: #3d2820;
-    --seg-time: #d2b98a;        --seg-time-bg: #33301f;
-    --seg-technique: #c3b3d1;   --seg-technique-bg: #302a38;
-    --seg-tip: #c6d1b8;         --seg-tip-bg: #243328;
-  }
-}
 
 @theme inline {
   --color-bg: var(--bg);
@@ -125,7 +82,8 @@
   --shadow-dialog: var(--shadow-dialog);
 }
 
-html { color-scheme: light dark; }
+/* Light only, by choice: the ivory-and-forest palette is the product. */
+html { color-scheme: light; }
 
 body {
   background: var(--bg);
@@ -443,9 +401,6 @@ body {
   display: inline-block; width: 100%; height: 100%; min-width: 2.25rem; min-height: 2.25rem;
   background-repeat: no-repeat; background-size: 600% 600%;
   border-radius: 8px; mix-blend-mode: multiply; vertical-align: middle;
-}
-@media (prefers-color-scheme: dark) {
-  .ingredient-sprite { mix-blend-mode: normal; border-radius: 50%; background-color: #f9f8f3; }
 }
 
 /* ---------- Palate additions (not in Savour) ---------- */

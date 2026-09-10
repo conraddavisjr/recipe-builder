@@ -66,7 +66,8 @@ Two agents studied the sibling build: `docs/design/design-system.md` (creative d
 Applied:
 - Ivory paper, forest-green ink, olive as the only accent; flat bordered cards with hover-only lift; two-line serif page headings with an olive italic phrase; tracked eyebrows; ink-filled primary pills. Derived dark palette keeps the forest temperature.
 - Steps render as prose with a monochrome facts strip (time, temperature, equipment, technique) under each title; only time and temperature are inline marks; "Show tags" restores the chip rendering and legend and persists in localStorage.
-- Cards show one eyebrow (cuisine and dish type), no pills; filters collapse into a popover with an active-filter row; three-column grid; chat icon in the meta row with hover, focus and touch reveal.
+- Cards show one eyebrow (cuisine and dish type), no pills; each filter group is a single-click dropdown whose button shows the chosen value; three-column grid; chat icon in the meta row with hover, focus and touch reveal.
+- Light theme only, by request: the dark palette was removed and `color-scheme` is pinned to light.
 - Detail page reading order: title, summary, actions, photo, stats strip, rationale, ingredients (two columns, equipment in the footer), method, feedback last; compact similar rows in a sticky column.
 - Wizard: horizontal stepper with counts, neutral inactive tiles, compact tiles for avoid and cookware, one-line descriptions that expand on hover.
 - Settings uses headings and dividers; instruction controls reveal on hover; inspiration provenance is a glyph with bar and label on hover.

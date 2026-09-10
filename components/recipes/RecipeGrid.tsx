@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { LoaderCircle, Search, SlidersHorizontal, Sparkles, X } from "lucide-react";
+import { Check, ChevronDown, LoaderCircle, Search, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import type { RecipeCard as RecipeCardData, Run } from "@/lib/types";
 import { api } from "@/lib/client/api";
@@ -20,8 +20,8 @@ const GROUPS: Array<{ key: FilterKey; label: string; labelFor?: (v: string) => s
 ];
 
 /**
- * Library grid. One toolbar row (search, Filters popover, sort, favorites),
- * an active-filter row only when something is set, and a three-column grid.
+ * Library grid. One toolbar row: search, one dropdown per filter group (the
+ * button shows the chosen value), sort, favorites, and Clear when needed.
  * Filter vocabularies are derived from the library so only real values are
  * offered. While a run is producing recipes or images the grid polls.
  */
@@ -34,10 +34,10 @@ export function RecipeGrid() {
   const [filters, setFilters] = useState<Partial<Record<FilterKey, string>>>({});
   const [sort, setSort] = useState("newest");
   const [favorites, setFavorites] = useState(false);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [openGroup, setOpenGroup] = useState<FilterKey | null>(null);
   const [vocab, setVocab] = useState<Vocab>({ cuisine: [], dish_type: [], health_profile: [], presentation: [] });
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const popover = useRef<HTMLDivElement>(null);
+  const toolbar = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async () => {
     const params = new URLSearchParams();
@@ -78,24 +78,23 @@ export function RecipeGrid() {
       .catch(() => undefined);
   }, [activeRuns.length]);
 
-  // Close the popover on outside click or Escape.
+  // Close an open dropdown on outside click or Escape.
   useEffect(() => {
-    if (!filtersOpen) return;
+    if (!openGroup) return;
     const onDown = (e: MouseEvent) => {
-      if (popover.current && !popover.current.contains(e.target as Node)) setFiltersOpen(false);
+      if (toolbar.current && !toolbar.current.contains(e.target as Node)) setOpenGroup(null);
     };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setFiltersOpen(false);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpenGroup(null);
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
     };
-  }, [filtersOpen]);
+  }, [openGroup]);
 
   const cooking = useMemo(() => activeRuns[0], [activeRuns]);
-  const activeFilters = GROUPS.filter((g) => filters[g.key]);
-  const hasAny = activeFilters.length > 0 || favorites || Boolean(q.trim());
+  const hasAny = GROUPS.some((g) => filters[g.key]) || favorites || Boolean(q.trim());
   const availableGroups = GROUPS.filter((g) => vocab[g.key].length > 0);
 
   function clearAll() {
@@ -106,34 +105,56 @@ export function RecipeGrid() {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div ref={toolbar} className="mb-6 flex flex-wrap items-center gap-2">
         <label className="relative min-w-[220px] flex-1">
           <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
           <input className="input pl-9" placeholder="Find your next favorite..." value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search recipes" />
         </label>
-        {availableGroups.length > 0 && (
-          <div className="relative" ref={popover}>
-            <button type="button" className="btn" aria-expanded={filtersOpen} aria-haspopup="dialog" onClick={() => setFiltersOpen((o) => !o)}>
-              <SlidersHorizontal size={15} /> Filters{activeFilters.length > 0 && <span className="badge ml-0.5">{activeFilters.length}</span>}
-            </button>
-            {filtersOpen && (
-              <div className="card absolute left-0 z-20 mt-2 w-[min(92vw,520px)] space-y-4 p-4" role="dialog" aria-label="Filters">
-                {availableGroups.map((g) => (
-                  <div key={g.key}>
-                    <p className="label mb-1.5">{g.label}</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {vocab[g.key].map((v) => (
-                        <button key={v} type="button" className="chip" data-active={filters[g.key] === v} onClick={() => setFilters((f) => ({ ...f, [g.key]: f[g.key] === v ? "" : v }))}>
+        {/* One button per filter group; a single click shows that group's options. */}
+        {availableGroups.map((g) => {
+          const value = filters[g.key];
+          const open = openGroup === g.key;
+          return (
+            <div key={g.key} className="relative">
+              <button
+                type="button"
+                className="btn"
+                data-active={Boolean(value)}
+                aria-expanded={open}
+                aria-haspopup="listbox"
+                onClick={() => setOpenGroup(open ? null : g.key)}
+              >
+                {value ? (g.labelFor ? g.labelFor(value) : value) : g.label}
+                <ChevronDown size={14} className="opacity-70" />
+              </button>
+              {open && (
+                <ul className="card absolute left-0 z-20 mt-2 max-h-72 w-max min-w-[12rem] max-w-[min(90vw,22rem)] overflow-y-auto p-1.5 shadow-[var(--shadow-dialog)]" role="listbox" aria-label={g.label}>
+                  {vocab[g.key].map((v) => {
+                    const selected = value === v;
+                    return (
+                      <li key={v}>
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={selected}
+                          className="flex w-full items-center justify-between gap-4 rounded-lg px-3 py-2 text-left text-sm transition hover:bg-tint"
+                          style={selected ? { background: "var(--tint-active)", fontWeight: 500 } : undefined}
+                          onClick={() => {
+                            setFilters((f) => ({ ...f, [g.key]: selected ? "" : v }));
+                            setOpenGroup(null);
+                          }}
+                        >
                           {g.labelFor ? g.labelFor(v) : v}
+                          {selected && <Check size={14} />}
                         </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          );
+        })}
         <select className="select w-auto" value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort">
           <option value="newest">Newest first</option>
           <option value="oldest">Oldest first</option>
@@ -143,20 +164,12 @@ export function RecipeGrid() {
         <button type="button" className="chip" data-active={favorites} onClick={() => setFavorites((f) => !f)} aria-pressed={favorites}>
           ♥ Favorites
         </button>
+        {hasAny && (
+          <button type="button" className="btn btn-ghost btn-sm" onClick={clearAll}>
+            <X size={13} /> Clear
+          </button>
+        )}
       </div>
-
-      {hasAny && (
-        <div className="mb-4 flex flex-wrap items-center gap-1.5 text-xs">
-          {activeFilters.map((g) => (
-            <button key={g.key} type="button" className="chip" data-active onClick={() => setFilters((f) => ({ ...f, [g.key]: "" }))} aria-label={`Remove ${g.label} filter`}>
-              {g.labelFor ? g.labelFor(filters[g.key]!) : filters[g.key]} <X size={12} />
-            </button>
-          ))}
-          {favorites && <button type="button" className="chip" data-active onClick={() => setFavorites(false)}>Favorites <X size={12} /></button>}
-          {q.trim() && <button type="button" className="chip" data-active onClick={() => setQ("")}>“{q.trim()}” <X size={12} /></button>}
-          <button type="button" className="btn btn-ghost btn-sm" onClick={clearAll}>Clear</button>
-        </div>
-      )}
 
       {cooking && (
         <p className="mb-4 flex items-center gap-2 text-sm text-muted">
