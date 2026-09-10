@@ -1,26 +1,174 @@
 @import "tailwindcss";
 
+/*
+ * Palate design tokens.
+ *
+ * A warm editorial palette: cream paper, ink text, terracotta accent, sage
+ * and gold as supporting notes. Every color is a token so the dark scheme is
+ * a swap, not a second stylesheet. Segment colors give each recipe-step kind
+ * (ingredient, equipment, temperature, time, technique, tip) its own hue.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --bg: #f6f1e8;
+  --surface: #fffdf8;
+  --surface-2: #f1eadf;
+  --ink: #1f1a16;
+  --muted: #6f655c;
+  --line: #e4dbcd;
+  --accent: #c2542d;
+  --accent-soft: #f5dfd3;
+  --accent-ink: #ffffff;
+  --sage: #6c8062;
+  --gold: #c69a3b;
+  --shadow: 0 1px 2px rgb(31 26 22 / 0.06), 0 8px 24px -12px rgb(31 26 22 / 0.18);
+  --shadow-lg: 0 2px 4px rgb(31 26 22 / 0.06), 0 24px 48px -16px rgb(31 26 22 / 0.28);
+  --radius: 14px;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --seg-ingredient: #3f7a4b;   --seg-ingredient-bg: #e3f0e4;
+  --seg-equipment: #4a5f9c;    --seg-equipment-bg: #e4e9f7;
+  --seg-temperature: #c2542d;  --seg-temperature-bg: #f9e2d8;
+  --seg-time: #8a6a1f;         --seg-time-bg: #f6ecd2;
+  --seg-technique: #7a4e8c;    --seg-technique-bg: #efe4f4;
+  --seg-tip: #2f7d86;          --seg-tip-bg: #dcf0f2;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #15120f;
+    --surface: #1e1a16;
+    --surface-2: #26211c;
+    --ink: #f2ebe1;
+    --muted: #a69b8f;
+    --line: #2f2822;
+    --accent: #e0714a;
+    --accent-soft: #3a2419;
+    --accent-ink: #1a0f09;
+    --sage: #8ea583;
+    --gold: #d8b25a;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+    --shadow-lg: 0 2px 4px rgb(0 0 0 / 0.4), 0 24px 48px -16px rgb(0 0 0 / 0.7);
+
+    --seg-ingredient: #8ccf98;  --seg-ingredient-bg: #1d3323;
+    --seg-equipment: #a4b4ea;   --seg-equipment-bg: #202a45;
+    --seg-temperature: #f1957a; --seg-temperature-bg: #45241a;
+    --seg-time: #e2c273;        --seg-time-bg: #3b2f14;
+    --seg-technique: #cfa7dd;   --seg-technique-bg: #35243c;
+    --seg-tip: #86cdd4;         --seg-tip-bg: #173538;
   }
 }
 
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-sage: var(--sage);
+  --color-gold: var(--gold);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --radius-card: var(--radius);
+}
+
+html { color-scheme: light dark; }
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Reusable primitives. Kept as classes rather than components for the
+   pieces that are pure styling. */
+.display { font-family: var(--font-display); font-weight: 500; letter-spacing: -0.01em; line-height: 1.1; }
+.eyebrow { font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.label { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+.text-muted { color: var(--muted); }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.input, .textarea, .select {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+  font: inherit;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 120ms, box-shadow 120ms;
+}
+.input:focus, .textarea:focus, .select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.textarea { min-height: 7rem; resize: vertical; line-height: 1.5; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  border-radius: 999px; padding: 0.55rem 1rem; font-weight: 600; font-size: 0.875rem;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  cursor: pointer; transition: transform 120ms, background 120ms, border-color 120ms, opacity 120ms;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--surface-2); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn-primary:hover { background: color-mix(in oklab, var(--accent) 88%, black); }
+.btn-ghost { border-color: transparent; background: transparent; }
+.btn-ghost:hover { background: var(--surface-2); }
+.btn-sm { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
+.btn-icon { padding: 0.5rem; border-radius: 999px; }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  border-radius: 999px; padding: 0.3rem 0.7rem; font-size: 0.78rem; font-weight: 600;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  cursor: pointer; transition: background 120ms, border-color 120ms, color 120ms;
+}
+.chip:hover { background: var(--surface-2); }
+.chip[data-active="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  border-radius: 999px; padding: 0.2rem 0.55rem; font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.02em; background: var(--surface-2); color: var(--ink);
+}
+
+/* Illustrated tile used by the profile wizard. --hue is set inline. */
+.tile {
+  --tile-bg: hsl(var(--hue) 55% 93%);
+  --tile-fg: hsl(var(--hue) 45% 32%);
+  position: relative; display: flex; flex-direction: column; gap: 0.5rem;
+  text-align: left; padding: 1rem; border-radius: var(--radius);
+  background: var(--surface); border: 1.5px solid var(--line); box-shadow: var(--shadow);
+  cursor: pointer; transition: transform 140ms, border-color 140ms, box-shadow 140ms;
+}
+.tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.tile[data-active="true"] { border-color: var(--tile-fg); background: var(--tile-bg); }
+.tile-art {
+  width: 3rem; height: 3rem; border-radius: 14px; display: grid; place-items: center;
+  background: var(--tile-bg); color: var(--tile-fg);
+}
+.tile[data-active="true"] .tile-art { background: var(--tile-fg); color: var(--tile-bg); }
+@media (prefers-color-scheme: dark) {
+  .tile { --tile-bg: hsl(var(--hue) 30% 18%); --tile-fg: hsl(var(--hue) 55% 72%); }
+}
+
+/* Thin, quiet scrollbars for drawers and menus. */
+.scroll-quiet { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+
+/* Subtle shimmer for pending imagery. */
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+.shimmer {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--line) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%; animation: shimmer 1.6s linear infinite;
 }
