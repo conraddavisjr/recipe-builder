@@ -2,7 +2,8 @@
 
 import { createElement, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, ChevronDown, Heart, LoaderCircle, MessageCircle, Minus, Plus, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, ArrowUpRight, ChevronDown, Heart, LoaderCircle, MessageCircle, Minus, Plus, Sparkles, Trash } from "lucide-react";
 import type { IngredientArt, Recipe, RecipeCard as RecipeCardData } from "@/lib/types";
 import { api } from "@/lib/client/api";
 import { findCatalogItem } from "@/lib/catalog";
@@ -11,6 +12,7 @@ import { useShell } from "@/components/shell/ShellProvider";
 import { IngredientRow } from "./IngredientRow";
 import { SegmentLegend, StepFacts, StepProse, type SegmentMode } from "./Segment";
 import { SimilarModal } from "./SimilarModal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 type Similar = RecipeCardData & { score: number };
 
@@ -24,7 +26,10 @@ const TAGS_KEY = "palate.stepTags";
 
 export function RecipeDetail({ id }: { id: string }) {
   const { openDrawer } = useShell();
+  const router = useRouter();
   const [data, setData] = useState<Payload | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
   const [showWhy, setShowWhy] = useState(false);
@@ -103,6 +108,19 @@ export function RecipeDetail({ id }: { id: string }) {
     if (!data) return;
     const { recipe } = await api<{ recipe: Recipe }>(`/api/recipes/${id}`, { method: "PATCH", json: partial });
     setData({ ...data, recipe });
+  }
+
+  async function remove() {
+    setDeleting(true);
+    try {
+      await api(`/api/recipes/${id}`, { method: "DELETE" });
+      router.push("/");
+      router.refresh();
+    } catch (e) {
+      setError((e as Error).message);
+      setDeleting(false);
+      setConfirmDelete(false);
+    }
   }
 
   const recipe = data?.recipe;
@@ -253,9 +271,12 @@ export function RecipeDetail({ id }: { id: string }) {
             ))}
           </div>
           <textarea className="textarea mt-4" placeholder="What worked, what did not, what you would change..." value={feedbackDraft} onChange={(e) => setFeedbackDraft(e.target.value)} />
-          <div className="mt-3">
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
             <button type="button" className="btn btn-primary" disabled={savingFeedback || feedbackDraft === (recipe.feedback ?? "")} onClick={async () => { setSavingFeedback(true); try { await patch({ feedback: feedbackDraft.trim() || null }); } finally { setSavingFeedback(false); } }}>
               {savingFeedback ? <LoaderCircle size={15} className="animate-spin" /> : null} Save cooking notes
+            </button>
+            <button type="button" className="btn btn-text text-muted" onClick={() => setConfirmDelete(true)}>
+              <Trash size={14} /> Delete this recipe
             </button>
           </div>
         </section>
@@ -308,6 +329,15 @@ export function RecipeDetail({ id }: { id: string }) {
         </div>
       </aside>
 
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Delete this recipe?"
+        body={`“${recipe.title}” and its photos will be removed from your library. The agent will no longer see your rating or notes for it. This cannot be undone.`}
+        confirmLabel="Delete recipe"
+        busy={deleting}
+        onCancel={() => setConfirmDelete(false)}
+        onConfirm={remove}
+      />
       <SimilarModal open={similarOpen} onClose={() => setSimilarOpen(false)} recipeId={recipe.id} recipeTitle={recipe.title} onStarted={setSimilarRun} />
     </div>
   );

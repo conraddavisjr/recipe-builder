@@ -132,3 +132,60 @@ import type { LucideProps } from "lucide-react";
 export function CatalogIcon({ name, ...props }: { name: string } & LucideProps) {
   return createElement(iconByName(name), props);
 }
+
+import { Globe, Eye, HeartPulse as HeartPulseIcon, Utensils as UtensilsIcon } from "lucide-react";
+import { CUISINES, findCatalogItem } from "@/lib/catalog";
+
+/** Glyph for each library filter group. */
+export const FILTER_GROUP_ICONS: Record<"cuisine" | "dish_type" | "health_profile" | "presentation", LucideIcon> = {
+  cuisine: Globe,
+  dish_type: UtensilsIcon,
+  health_profile: HeartPulseIcon,
+  presentation: Eye,
+};
+
+/**
+ * Cuisine values on recipes are free text ("Thai", "Modern American / Texas
+ * brunch"). Match them to the catalog by label or key stem; fall back to a
+ * globe so every option still gets a glyph.
+ */
+export function cuisineIcon(value: string): LucideIcon {
+  const v = value.toLowerCase();
+  const hit = CUISINES.find((c) => v.includes(c.label.toLowerCase()) || v.includes(c.key.split("_")[0]));
+  return hit ? iconByName(hit.icon) : Globe;
+}
+
+const DISH_ICONS: Array<[RegExp, LucideIcon]> = [
+  [/soup|broth|stew|hot ?pot|chowder|ramen|pho|nabe|jjigae|curry|braise/, Soup],
+  [/pizza|flatbread|pide|calzone/, Pizza],
+  [/salad|slaw|crudo|ceviche|poke/, Salad],
+  [/sandwich|burger|toast|wrap|taco|burrito|banh ?mi/, Sandwich],
+  [/pancake|waffle|crepe|cake|pie|tart|dessert|pudding|cookie|brownie/, Cake],
+  [/pastry|croissant|bread|bun|biscuit|scone/, Croissant],
+  [/noodle|pasta|rice|bowl|risotto|fried rice|grain|pilaf|congee/, Wheat],
+  [/roast|bake|casserole|gratin|sheet ?pan|traybake/, Heater],
+  [/grill|skewer|kebab|bbq|barbecue|satay/, Flame],
+  [/fish|seafood|shellfish/, Fish],
+  [/chicken|poultry|wing/, Drumstick],
+  [/steak|beef|lamb|pork|chop|ribs?/, Beef],
+  [/egg|omelet|frittata|shakshuka/, Egg],
+  [/drink|smoothie|cocktail|tea|coffee/, Coffee],
+  [/snack|popcorn|fritter|fried/, Popcorn],
+];
+
+/** Glyph for a free-text dish type. */
+export function dishTypeIcon(value: string): LucideIcon {
+  const v = value.toLowerCase();
+  for (const [pattern, icon] of DISH_ICONS) if (pattern.test(v)) return icon;
+  return UtensilsIcon;
+}
+
+/** Glyph for a filter option, by group. */
+export function filterOptionIcon(group: keyof typeof FILTER_GROUP_ICONS, value: string): LucideIcon {
+  switch (group) {
+    case "cuisine": return cuisineIcon(value);
+    case "dish_type": return dishTypeIcon(value);
+    case "health_profile": return iconByName(findCatalogItem("health", value)?.icon ?? "HeartPulse");
+    case "presentation": return iconByName(findCatalogItem("presentation", value)?.icon ?? "Eye");
+  }
+}

@@ -6,6 +6,8 @@ import Link from "next/link";
 import type { RecipeCard as RecipeCardData, Run } from "@/lib/types";
 import { api } from "@/lib/client/api";
 import { findCatalogItem } from "@/lib/catalog";
+import { FILTER_GROUP_ICONS, filterOptionIcon } from "@/lib/icons";
+import { createElement } from "react";
 import { RecipeCard } from "./RecipeCard";
 import { useShell } from "@/components/shell/ShellProvider";
 
@@ -124,6 +126,7 @@ export function RecipeGrid() {
                 aria-haspopup="listbox"
                 onClick={() => setOpenGroup(open ? null : g.key)}
               >
+                {createElement(FILTER_GROUP_ICONS[g.key], { size: 14, className: value ? "opacity-90" : "text-muted" })}
                 {value ? (g.labelFor ? g.labelFor(value) : value) : g.label}
                 <ChevronDown size={14} className="opacity-70" />
               </button>
@@ -144,7 +147,10 @@ export function RecipeGrid() {
                             setOpenGroup(null);
                           }}
                         >
-                          {g.labelFor ? g.labelFor(v) : v}
+                          <span className="inline-flex items-center gap-2.5">
+                            {createElement(filterOptionIcon(g.key, v), { size: 15, className: "shrink-0", style: { color: "var(--olive-deep)" } })}
+                            {g.labelFor ? g.labelFor(v) : v}
+                          </span>
                           {selected && <Check size={14} />}
                         </button>
                       </li>

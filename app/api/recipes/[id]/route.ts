@@ -35,3 +35,14 @@ export async function PATCH(request: Request, ctx: Ctx) {
     return NextResponse.json({ recipe: await db.updateRecipeFeedback(id, parsed.data) });
   });
 }
+
+/** DELETE /api/recipes/:id -> { ok }. Removes the recipe and its images. */
+export async function DELETE(_request: Request, ctx: Ctx) {
+  return handle(async () => {
+    const { id } = await ctx.params;
+    const recipe = await db.getRecipe(id);
+    if (!recipe) return apiError("Recipe not found", 404);
+    await db.deleteRecipes([id]);
+    return NextResponse.json({ ok: true });
+  });
+}
