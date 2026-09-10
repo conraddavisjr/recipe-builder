@@ -36,10 +36,15 @@ Built:
 - Routes: `/api/worker`, `/api/cron/recommend`, `/api/runs`, `/api/runs/[id]`, `/api/runs/[id]/keep`, `/api/recipes`, `/api/recipes/[id]`.
 - UI: recipe grid (search, derived filter chips, sort, favorites, polling while a run is live, hover chat icon), detail page (gallery, poetic summary, rationale, icon-tagged steps with legend, ingredient art with serving scaler, equipment icons, rating and feedback, similar column with generate-similar modal), history page with the exact prompt shown to the model, generator page (drafts, keep or discard).
 
-Verified: typecheck, lint, 11 unit tests. Both API keys authenticate.
+Verified 2026-09-10 against the local Supabase stack (`npx supabase start`, analytics disabled, edge-runtime/realtime/mailpit excluded):
+- Wizard tiles persist per click and derived flavors follow loved cuisines; settings save from the modal; instructions save from the drawer in both tiers.
+- "Run now" produced 3 recipes in one Opus 5 call (no constraint issues), photos and ingredient art rendered through the queue, grid polled them in live, detail page shows icon-tagged segments, rating and feedback persist, similarity column populated.
+- Queue fixes found in the run: food photos are enqueued before ingredient art; interactive tasks (generation, analysis) are claimed ahead of rendering; a dev-only heartbeat in `instrumentation.ts` replaces pg_cron locally.
 
-Not yet verified: anything against a database or a real generation run (local Supabase stack was still pulling images).
+## Chunk 4: inspirations (code complete 2026-09-10)
 
-## Next
-
-Bring up local Supabase, run the schema, verify chunks 2 and 3 end to end in the browser with one real run.
+Built:
+- `/inspirations`: add form with direct-to-storage photo upload (signed upload URL, browser PUT), list with live status.
+- `/inspirations/[id]`: research panel (restaurant and dish verification, menu quote, photo observations, flavor, techniques, sources), ingredient list with verified / inferred / user-provided provenance and confidence, corrections editor, "Re-analyze with my corrections", "Research again", "Cook this at home", delete.
+- `lib/ai/analyzeInspiration.ts`: manual loop with `web_search_20260209` + `web_fetch_20260209` and the photo as an image block, `pause_turn` handled, then a parse call into the analysis schema; `reanalyzeIngredients` folds corrections in with provenance kept.
+- Saving an inspiration queues research automatically; editing marks analysis stale instead of clearing it.

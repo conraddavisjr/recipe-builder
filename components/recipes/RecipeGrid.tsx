@@ -125,13 +125,15 @@ export function RecipeGrid() {
       ) : recipes.length === 0 ? (
         <div className="card grid place-items-center gap-3 p-12 text-center">
           <Sparkles size={28} style={{ color: "var(--accent)" }} />
-          <p className="display text-2xl">{hasFilters ? "Nothing matches those filters" : "Your library is empty"}</p>
+          <p className="display text-2xl">{hasFilters ? "Nothing matches those filters" : cooking ? "Your first batch is on its way" : "Your library is empty"}</p>
           <p className="max-w-md text-sm text-muted">
             {hasFilters
               ? "Loosen the filters or clear the search to see everything."
-              : "Fill in your taste profile, then ask the agent for a first batch. Autonomous runs will keep it growing."}
+              : cooking
+                ? "Recipes appear here the moment the agent finishes writing them; photos fill in after."
+                : "Fill in your taste profile, then ask the agent for a first batch. Autonomous runs will keep it growing."}
           </p>
-          {!hasFilters && (
+          {!hasFilters && !cooking && (
             <div className="flex gap-2">
               <Link href="/profile" className="btn">Build profile</Link>
               <button type="button" className="btn btn-primary" onClick={() => setSettingsOpen(true)}>Run now</button>

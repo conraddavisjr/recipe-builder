@@ -7,12 +7,14 @@ import type { StepSegment } from "@/lib/types";
  * the timing or the tool without reading the prose.
  */
 export function Segment({ segment }: { segment: StepSegment }) {
-  if (segment.kind === "text") return <span>{segment.text} </span>;
+  // Text runs keep their own spacing; a run that starts with punctuation
+  // must hug the chip before it, so no leading space is ever injected.
+  if (segment.kind === "text") return <span>{/\s$/.test(segment.text) ? segment.text : `${segment.text} `}</span>;
   const style = SEGMENT_STYLES[segment.kind];
   const Icon = style.icon;
   return (
     <span
-      className="mx-0.5 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 align-baseline text-[0.92em] font-medium leading-tight"
+      className="mr-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 align-baseline text-[0.92em] font-medium leading-tight"
       style={{ background: style.bg, color: style.fg }}
       title={`${style.label}${segment.value ? `: ${segment.value}` : ""}`}
     >

@@ -97,12 +97,12 @@ body {
   box-shadow: var(--shadow);
 }
 
+/* Sizing lives in :where() so Tailwind utilities (w-auto, pl-9) can override it. */
+:where(.input, .textarea, .select) { width: 100%; padding: 0.6rem 0.8rem; }
 .input, .textarea, .select {
-  width: 100%;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 10px;
-  padding: 0.6rem 0.8rem;
   font: inherit;
   color: var(--ink);
   outline: none;

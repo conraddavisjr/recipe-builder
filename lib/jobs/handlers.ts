@@ -1,4 +1,5 @@
 import { generateRecipes } from "@/lib/ai/generateRecipes";
+import { analyzeInspiration, reanalyzeIngredients } from "@/lib/ai/analyzeInspiration";
 import { generateFoodPhoto, generateIngredientArt, ingredientArtPrompt } from "@/lib/ai/images";
 import type { GenerationMode } from "@/lib/ai/context";
 import { config } from "@/lib/config";
@@ -69,7 +70,11 @@ const generate_recipes: Handler = async (task) => {
       }));
     }
 
-    await db.enqueueTasks([...imageTasks, ...artTasks]);
+    // Two inserts on purpose: the queue is FIFO by created_at, and a single
+    // insert stamps every row identically. Food photos go first so a card
+    // gets its hero image before the ingredient art trickles in.
+    await db.enqueueTasks(imageTasks);
+    await db.enqueueTasks(artTasks);
     await db.updateRun(runId, {
       status: imageTasks.length + artTasks.length > 0 ? "rendering" : "done",
       finished_at: imageTasks.length + artTasks.length > 0 ? null : new Date().toISOString(),
@@ -123,15 +128,45 @@ const render_ingredient_art: Handler = async (task) => {
   }
 };
 
-/** Placeholder until the inspirations chunk lands; keeps the queue total. */
-const analyze_inspiration: Handler = async () => {
-  throw new Error("analyze_inspiration is not implemented yet");
+const analyze_inspiration: Handler = async (task) => {
+  const id = String(task.payload.inspiration_id);
+  const inspiration = await db.getInspiration(id);
+  if (!inspiration) throw new Error(`inspiration ${id} not found`);
+  await db.setInspirationAnalysis(id, { analysis_status: "running", analysis_error: null });
+  try {
+    const photo = inspiration.photo_path ? await db.downloadPhoto(inspiration.photo_path) : null;
+    const analysis = await analyzeInspiration(inspiration, photo);
+    await db.setInspirationAnalysis(id, { analysis, analysis_status: "done", analysis_error: null });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (task.attempts >= task.max_attempts) {
+      await db.setInspirationAnalysis(id, { analysis_status: "failed", analysis_error: message });
+    }
+    throw err;
+  }
 };
-const reanalyze_ingredients: Handler = async () => {
-  throw new Error("reanalyze_ingredients is not implemented yet");
+
+const reanalyze_ingredients: Handler = async (task) => {
+  const id = String(task.payload.inspiration_id);
+  const inspiration = await db.getInspiration(id);
+  if (!inspiration) throw new Error(`inspiration ${id} not found`);
+  await db.setInspirationAnalysis(id, { analysis_status: "running", analysis_error: null });
+  try {
+    const analysis = await reanalyzeIngredients(inspiration);
+    await db.setInspirationAnalysis(id, { analysis, analysis_status: "done", analysis_error: null });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (task.attempts >= task.max_attempts) {
+      await db.setInspirationAnalysis(id, { analysis_status: "failed", analysis_error: message });
+    }
+    throw err;
+  }
 };
 const cleanup_candidates: Handler = async () => {
-  throw new Error("cleanup_candidates is not implemented yet");
+  const stale = await db.listRecipeCards({ status: "candidate", sort: "oldest", limit: 100 });
+  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  const ids = stale.filter((r) => new Date(r.created_at).getTime() < cutoff).map((r) => r.id);
+  await db.deleteRecipes(ids);
 };
 
 export const HANDLERS: Record<Task["type"], Handler> = {

@@ -238,11 +238,14 @@ begin
      set status = 'queued', locked_at = null
    where status = 'running' and locked_at < now() - interval '10 minutes';
 
+  -- Interactive work (generation, analysis) jumps ahead of bulk rendering so
+  -- a person's new request never waits behind fifty ingredient illustrations.
   return query
   with picked as (
     select id from tasks
      where status = 'queued'
-     order by created_at
+     order by (type in ('generate_recipes', 'analyze_inspiration', 'reanalyze_ingredients')) desc,
+              created_at
      limit p_limit
      for update skip locked
   )

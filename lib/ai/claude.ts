@@ -47,5 +47,6 @@ Batch rules:
 - Never repeat or lightly vary a recent title.
 - Respect the maximum cooking time and the servings count from the settings.
 - Use metric and imperial for temperatures; use the person's likely units for quantities (grams or cups is fine, be consistent within a recipe).
+- Punctuation: use plain hyphens or commas, never em dashes or en dashes. Text segments that follow a tagged segment should begin with the punctuation or word that naturally follows it (", then" / "and"), with no leading filler.
 
 Return only the JSON object required by the schema.`;

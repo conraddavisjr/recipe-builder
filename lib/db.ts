@@ -682,3 +682,78 @@ export async function getInspiration(id: string): Promise<Inspiration | null> {
   if (error) fail("getInspiration", error);
   return data ? withPhotoUrl(data as InspirationRow) : null;
 }
+
+// ---------------------------------------------------------------------------
+// Inspirations (write side)
+// ---------------------------------------------------------------------------
+
+export async function createInspiration(input: {
+  dish_name: string;
+  restaurant_name: string;
+  city: string;
+  notes: string;
+  photo_path?: string | null;
+}): Promise<Inspiration> {
+  const { data, error } = await getSupabase()
+    .from("inspirations")
+    .insert({ user_id: uid, ...input, photo_path: input.photo_path ?? null })
+    .select(INSPIRATION_COLS)
+    .single();
+  if (error) fail("createInspiration", error);
+  return withPhotoUrl(data as InspirationRow);
+}
+
+/**
+ * Update the user-editable fields. Existing analysis is never cleared: if the
+ * facts it was based on change, it is marked stale until re-analysis.
+ */
+export async function updateInspiration(
+  id: string,
+  patch: Partial<Pick<Inspiration, "dish_name" | "restaurant_name" | "city" | "notes" | "photo_path" | "user_ingredients">>,
+): Promise<Inspiration> {
+  const current = await getInspiration(id);
+  if (!current) throw new Error("updateInspiration: not found");
+  const update: Record<string, unknown> = { ...patch };
+  if (current.analysis && current.analysis_status === "done") update.analysis_status = "stale";
+  const { data, error } = await getSupabase()
+    .from("inspirations")
+    .update(update)
+    .eq("user_id", uid)
+    .eq("id", id)
+    .select(INSPIRATION_COLS)
+    .single();
+  if (error) fail("updateInspiration", error);
+  return withPhotoUrl(data as InspirationRow);
+}
+
+export async function setInspirationAnalysis(
+  id: string,
+  patch: { analysis?: Inspiration["analysis"]; analysis_status: Inspiration["analysis_status"]; analysis_error?: string | null },
+): Promise<void> {
+  const update: Record<string, unknown> = { ...patch };
+  if (patch.analysis_status === "done") update.analyzed_at = new Date().toISOString();
+  const { error } = await getSupabase().from("inspirations").update(update).eq("id", id);
+  if (error) fail("setInspirationAnalysis", error);
+}
+
+export async function deleteInspiration(id: string): Promise<void> {
+  const sb = getSupabase();
+  const current = await getInspiration(id);
+  if (current?.photo_path) await sb.storage.from(config.buckets.inspirationPhotos).remove([current.photo_path]);
+  const { error } = await sb.from("inspirations").delete().eq("user_id", uid).eq("id", id);
+  if (error) fail("deleteInspiration", error);
+}
+
+/** Signed URL the browser can PUT a photo to directly, bypassing the app server. */
+export async function createPhotoUploadUrl(path: string): Promise<{ url: string; token: string; path: string }> {
+  const { data, error } = await getSupabase().storage.from(config.buckets.inspirationPhotos).createSignedUploadUrl(path);
+  if (error) fail("createPhotoUploadUrl", error);
+  return { url: data.signedUrl, token: data.token, path: data.path };
+}
+
+/** Raw bytes of a stored photo, for sending to the vision model. */
+export async function downloadPhoto(path: string): Promise<{ bytes: Uint8Array; contentType: string }> {
+  const { data, error } = await getSupabase().storage.from(config.buckets.inspirationPhotos).download(path);
+  if (error) fail("downloadPhoto", error);
+  return { bytes: new Uint8Array(await data.arrayBuffer()), contentType: data.type || "image/jpeg" };
+}
