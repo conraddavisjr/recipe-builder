@@ -20,11 +20,10 @@ export function Toggle({
       aria-label={label}
       onClick={() => onChange(!checked)}
       className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition"
-      style={{ background: checked ? "var(--accent)" : "var(--line)" }}
+      style={{ background: checked ? "var(--ink)" : "var(--line-strong)" }}
     >
       <span
-        className="inline-block h-5 w-5 rounded-full bg-white shadow transition"
-        style={{ transform: checked ? "translateX(22px)" : "translateX(2px)" }}
+        className="inline-block h-5 w-5 rounded-full shadow transition" style={{ background: "var(--surface)", transform: checked ? "translateX(22px)" : "translateX(2px)" }}
       />
     </button>
   );

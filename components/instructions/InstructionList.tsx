@@ -92,17 +92,13 @@ function InstructionRow({
 
   return (
     <li
-      className="rounded-xl border p-3"
-      style={{
-        borderColor: truth ? "var(--sage)" : "var(--line)",
-        background: "var(--surface)",
-        opacity: instruction.active ? 1 : 0.55,
-      }}
+      className="group rounded-[var(--radius-md)] border border-line bg-surface p-4"
+      style={{ opacity: instruction.active ? 1 : 0.5 }}
     >
       <div className="flex items-start gap-3">
         <span
           className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full"
-          style={{ background: truth ? "var(--sage)" : "var(--accent-soft)", color: truth ? "#fff" : "var(--accent)" }}
+          style={{ background: truth ? "var(--ink)" : "var(--tint-active)", color: truth ? "var(--accent-ink)" : "var(--olive-deep)" }}
           title={truth ? "Absolute truth" : "Preference"}
         >
           {truth ? <ShieldCheck size={15} /> : <Sparkles size={15} />}
@@ -119,7 +115,7 @@ function InstructionRow({
             {!instruction.active && " · inactive"}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1 opacity-0 transition focus-within:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100">
           {editing ? (
             <>
               <button type="button" className="btn btn-ghost btn-icon" aria-label="Save" onClick={save} disabled={busy}><Check size={16} /></button>

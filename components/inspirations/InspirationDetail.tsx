@@ -3,15 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Camera, ChefHat, ExternalLink, LoaderCircle, Plus, RefreshCw, Search, Trash, X } from "lucide-react";
+import { ArrowLeft, Camera, Check, ChefHat, ExternalLink, LoaderCircle, Pencil, Plus, RefreshCw, Search, Trash, X } from "lucide-react";
 import type { Inspiration, UserIngredient } from "@/lib/types";
 import { api } from "@/lib/client/api";
 import { StatusBadge } from "./StatusBadge";
 
-const PROVENANCE: Record<string, { label: string; color: string }> = {
-  verified: { label: "Verified", color: "var(--sage)" },
-  inferred: { label: "Inferred", color: "var(--gold)" },
-  user_provided: { label: "You said so", color: "var(--accent)" },
+const PROVENANCE: Record<string, { label: string; color: string; glyph: "check" | "tilde" | "pencil" }> = {
+  verified: { label: "Verified in a source", color: "var(--olive-deep)", glyph: "check" },
+  inferred: { label: "Inferred by the agent", color: "var(--gold)", glyph: "tilde" },
+  user_provided: { label: "You said so", color: "var(--ink)", glyph: "pencil" },
 };
 
 export function InspirationDetail({ id }: { id: string }) {
@@ -119,7 +119,7 @@ export function InspirationDetail({ id }: { id: string }) {
           </span>
           <div className="min-w-0 flex-1">
             <StatusBadge status={item.analysis_status} />
-            <h1 className="display mt-2 text-3xl">{item.dish_name}</h1>
+            <h1 className="display display-lg mt-3">{item.dish_name}</h1>
             <p className="text-muted">{[item.restaurant_name, item.city].filter(Boolean).join(" · ")}</p>
             {item.notes && <p className="mt-3 text-sm leading-relaxed">{item.notes}</p>}
             {item.analysis_error && <p className="mt-2 text-sm" style={{ color: "var(--accent)" }}>{item.analysis_error}</p>}
@@ -155,7 +155,7 @@ export function InspirationDetail({ id }: { id: string }) {
                 {a.techniques.length > 0 && (
                   <div>
                     <p className="label mb-1">Techniques</p>
-                    <div className="flex flex-wrap gap-1.5">{a.techniques.map((t) => <span key={t} className="badge" style={{ background: "var(--seg-technique-bg)", color: "var(--seg-technique)" }}>{t}</span>)}</div>
+                    <div className="flex flex-wrap gap-1.5">{a.techniques.map((t) => <span key={t} className="badge">{t}</span>)}</div>
                   </div>
                 )}
               </div>
@@ -177,21 +177,26 @@ export function InspirationDetail({ id }: { id: string }) {
             </section>
 
             <section>
-              <h2 className="display text-xl">What the agent thinks is in it</h2>
+              <h2 className="display display-md">What the agent thinks is in it</h2>
               <ul className="mt-3 divide-y divide-line rounded-[var(--radius)] border border-line bg-surface">
                 {a.ingredients.map((ing, i) => {
                   const p = PROVENANCE[ing.provenance] ?? PROVENANCE.inferred;
                   return (
-                    <li key={`${ing.ingredient_key}-${i}`} className="flex items-center gap-3 px-4 py-2.5 text-sm">
+                    <li key={`${ing.ingredient_key}-${i}`} className="group flex items-center gap-3 px-4 py-2.5 text-sm" title={`${p.label} · confidence ${Math.round(ing.confidence * 100)}%`}>
+                      <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px]" style={{ background: "var(--tint)", color: p.color }} aria-label={p.label}>
+                        {p.glyph === "check" ? <Check size={11} strokeWidth={3} /> : p.glyph === "pencil" ? <Pencil size={10} /> : "~"}
+                      </span>
                       <span className="min-w-0 flex-1">
                         <span className="font-medium">{ing.name}</span>
                         {ing.role && <span className="text-muted"> · {ing.role}</span>}
                         {ing.note && <span className="block text-xs text-muted">{ing.note}</span>}
                       </span>
-                      <span className="h-1.5 w-16 overflow-hidden rounded-full bg-surface-2" title={`Confidence ${Math.round(ing.confidence * 100)}%`}>
-                        <span className="block h-full" style={{ width: `${Math.round(ing.confidence * 100)}%`, background: p.color }} />
+                      <span className="flex items-center gap-2 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
+                        <span className="h-1.5 w-16 overflow-hidden rounded-full bg-surface-2">
+                          <span className="block h-full" style={{ width: `${Math.round(ing.confidence * 100)}%`, background: p.color }} />
+                        </span>
+                        <span className="badge badge-sm" style={{ color: p.color }}>{p.label}</span>
                       </span>
-                      <span className="badge" style={{ color: p.color }}>{p.label}</span>
                     </li>
                   );
                 })}

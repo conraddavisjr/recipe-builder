@@ -44,10 +44,10 @@ export function InspirationForm({ onCreated }: { onCreated: (i: Inspiration) => 
   }
 
   return (
-    <form onSubmit={submit} className="card space-y-4 p-5">
+    <form onSubmit={submit} className="card space-y-5 p-7">
       <div>
         <p className="eyebrow">New inspiration</p>
-        <h2 className="display text-xl">A dish you loved out</h2>
+        <h2 className="display display-md mt-2">A dish you loved out</h2>
         <p className="mt-1 text-sm text-muted">Name the dish and the restaurant, add a photo if you have one. The agent researches it the moment you save.</p>
       </div>
       <Field label="Dish" htmlFor="dish">

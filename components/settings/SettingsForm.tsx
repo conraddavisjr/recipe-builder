@@ -108,10 +108,10 @@ export function SettingsForm({ onRunStarted }: { onRunStarted?: (runId: string) 
         </Field>
       </div>
 
-      <div className="rounded-xl border border-line p-4">
+      <div className="divider pt-5">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="font-semibold text-sm">Autonomous runs</p>
+            <p className="display text-lg">Autonomous runs</p>
             <p className="text-xs text-muted">Generate a fresh batch on a schedule without being asked.</p>
           </div>
           <Toggle
@@ -145,9 +145,9 @@ export function SettingsForm({ onRunStarted }: { onRunStarted?: (runId: string) 
         </p>
       </div>
 
-      <div className="flex items-center justify-between gap-4 rounded-xl border border-line p-4">
+      <div className="divider flex items-center justify-between gap-4 pt-5">
         <div>
-          <p className="font-semibold text-sm">Ingredient illustrations</p>
+          <p className="display text-lg">Ingredient illustrations</p>
           <p className="text-xs text-muted">Generate an illustration for each new ingredient (cached forever after).</p>
         </div>
         <Toggle
@@ -158,7 +158,7 @@ export function SettingsForm({ onRunStarted }: { onRunStarted?: (runId: string) 
         />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+      <div className="divider flex flex-wrap items-center justify-between gap-3 pt-5">
         <p className="text-xs text-muted">
           {saving ? (
             <span className="inline-flex items-center gap-1"><LoaderCircle size={12} className="animate-spin" /> Saving</span>

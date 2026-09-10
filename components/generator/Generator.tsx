@@ -94,11 +94,11 @@ export function Generator() {
 
   return (
     <div className="space-y-8">
-      <form onSubmit={start} className="card p-5">
+      <form onSubmit={start} className="card p-7">
         <label htmlFor="craving" className="label">What are you in the mood for?</label>
         <textarea
           id="craving"
-          className="textarea mt-1"
+          className="textarea textarea-journal mt-1"
           placeholder="e.g. Something brothy and warming with a lot of ginger, under 45 minutes, that would look good in a deep bowl."
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}

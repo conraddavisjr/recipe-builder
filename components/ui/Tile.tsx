@@ -5,9 +5,10 @@ import { CatalogIcon } from "@/lib/icons";
 import type { CatalogItem } from "@/lib/catalog";
 
 /**
- * Illustrated, toggleable preference card. Used by every wizard step and the
- * revisit view; clicking flips the selection. `cue` is an optional second
- * line (flavor profiles use it for the sensory description).
+ * Illustrated, toggleable preference card. Inactive tiles are neutral so
+ * selection is the only color on the grid; the hue paints the active state.
+ * `compact` drops the description for steps whose labels speak for
+ * themselves (cuisines to avoid, cookware).
  */
 export function Tile({
   item,
@@ -15,42 +16,39 @@ export function Tile({
   cue,
   onToggle,
   busy,
+  compact,
 }: {
   item: CatalogItem;
   active: boolean;
   cue?: string;
   onToggle: () => void;
   busy?: boolean;
+  compact?: boolean;
 }) {
+  const secondary = cue ?? item.description;
   return (
     <button
       type="button"
-      className="tile"
+      className={`tile${compact ? " tile-compact" : ""}`}
       data-active={active}
       aria-pressed={active}
       disabled={busy}
       onClick={onToggle}
+      title={item.description}
       style={{ "--hue": item.hue } as React.CSSProperties}
     >
-      <span className="flex items-start justify-between">
-        <span className="tile-art">
-          <CatalogIcon name={item.icon} size={24} strokeWidth={1.75} />
+      {active && (
+        <span className="tile-check" aria-hidden>
+          <Check size={13} strokeWidth={3} />
         </span>
-        <span
-          className="grid h-6 w-6 place-items-center rounded-full border transition"
-          style={{
-            borderColor: active ? "var(--tile-fg)" : "var(--line)",
-            background: active ? "var(--tile-fg)" : "transparent",
-            color: "var(--tile-bg)",
-          }}
-          aria-hidden
-        >
-          {active && <Check size={14} strokeWidth={3} />}
-        </span>
+      )}
+      <span className="tile-art">
+        <CatalogIcon name={item.icon} size={compact ? 18 : 22} strokeWidth={1.75} />
       </span>
-      <span className="font-semibold leading-tight">{item.label}</span>
-      {cue && <span className="text-xs font-medium" style={{ color: "var(--tile-fg)" }}>{cue}</span>}
-      <span className="text-xs leading-snug text-muted">{item.description}</span>
+      <span className="min-w-0">
+        <span className={`display block leading-tight ${compact ? "text-base" : "text-lg"}`}>{item.label}</span>
+        {!compact && <span className="tile-desc mt-1 block text-xs leading-snug text-muted">{secondary}</span>}
+      </span>
     </button>
   );
 }

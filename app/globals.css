@@ -1,59 +1,101 @@
 @import "tailwindcss";
 
 /*
- * Palate design tokens.
+ * Palate design tokens, derived from Savour.
  *
- * A warm editorial palette: cream paper, ink text, terracotta accent, sage
- * and gold as supporting notes. Every color is a token so the dark scheme is
- * a swap, not a second stylesheet. Segment colors give each recipe-step kind
- * (ingredient, equipment, temperature, time, technique, tip) its own hue.
+ * Ivory paper, forest-green ink, olive as the only accent. Primary actions
+ * are ink-filled; olive is reserved for small signals (eyebrows, focus,
+ * step numerals, the brand star, selected tiles). Terracotta means "avoid"
+ * or "heat", nothing else. Cards are flat at rest and lift on hover.
  */
 :root {
-  --bg: #f6f1e8;
-  --surface: #fffdf8;
-  --surface-2: #f1eadf;
-  --ink: #1f1a16;
-  --muted: #6f655c;
-  --line: #e4dbcd;
-  --accent: #c2542d;
-  --accent-soft: #f5dfd3;
+  --bg: #f9f8f3;
+  --surface: #ffffff;
+  --surface-2: #edf0e5;
+  --tint: #edf0e5;
+  --tint-active: #eaf0da;
+  --ink: #263c30;
+  --ink-hover: #41563d;
+  --muted: #758075;
+  --line: #e1e4db;
+  --line-strong: #cdd3bf;
+  --accent: #879443;
+  --accent-soft: #eaf0da;
   --accent-ink: #ffffff;
-  --sage: #6c8062;
-  --gold: #c69a3b;
-  --shadow: 0 1px 2px rgb(31 26 22 / 0.06), 0 8px 24px -12px rgb(31 26 22 / 0.18);
-  --shadow-lg: 0 2px 4px rgb(31 26 22 / 0.06), 0 24px 48px -16px rgb(31 26 22 / 0.28);
-  --radius: 14px;
+  --olive-muted: #798166;
+  --olive-soft: #8b995c;
+  --olive-deep: #718047;
+  --lime: #e4ecb2;
+  --sage: #41563d;
+  --gold: #8d7147;
+  --warn-bg: #f2eddd;
+  --warn-fg: #8d7147;
+  --danger-bg: #f9ebe7;
+  --danger-line: #e5c2ba;
+  --danger-fg: #7b3228;
+  --avoid-bg: #f2e1d7;
+  --avoid-line: #c89e84;
+  --avoid-fg: #805238;
+  --shadow: none;
+  --shadow-lg: 0 12px 28px rgb(38 60 48 / 0.06);
+  --shadow-dialog: 0 20px 100px rgb(23 38 25 / 0.21);
+  --shadow-toast: 0 8px 35px rgb(0 0 0 / 0.13);
+  --backdrop: rgb(27 43 37 / 0.4);
+  --radius: 16px;
+  --radius-sm: 9px;
+  --radius-md: 13px;
+  --radius-lg: 20px;
+  --radius-pill: 30px;
 
-  --seg-ingredient: #3f7a4b;   --seg-ingredient-bg: #e3f0e4;
-  --seg-equipment: #4a5f9c;    --seg-equipment-bg: #e4e9f7;
-  --seg-temperature: #c2542d;  --seg-temperature-bg: #f9e2d8;
-  --seg-time: #8a6a1f;         --seg-time-bg: #f6ecd2;
-  --seg-technique: #7a4e8c;    --seg-technique-bg: #efe4f4;
-  --seg-tip: #2f7d86;          --seg-tip-bg: #dcf0f2;
+  --seg-ingredient: #5f7a3a;   --seg-ingredient-bg: #eaf0da;
+  --seg-equipment: #4f6270;    --seg-equipment-bg: #e6ecee;
+  --seg-temperature: #9c4b2f;  --seg-temperature-bg: #f2e1d7;
+  --seg-time: #8d7147;         --seg-time-bg: #f2eddd;
+  --seg-technique: #6b5b7b;    --seg-technique-bg: #ece7f0;
+  --seg-tip: #41563d;          --seg-tip-bg: #edf3e9;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #15120f;
-    --surface: #1e1a16;
-    --surface-2: #26211c;
-    --ink: #f2ebe1;
-    --muted: #a69b8f;
-    --line: #2f2822;
-    --accent: #e0714a;
-    --accent-soft: #3a2419;
-    --accent-ink: #1a0f09;
-    --sage: #8ea583;
-    --gold: #d8b25a;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
-    --shadow-lg: 0 2px 4px rgb(0 0 0 / 0.4), 0 24px 48px -16px rgb(0 0 0 / 0.7);
+    --bg: #171f1a;
+    --surface: #1e2821;
+    --surface-2: #26312a;
+    --tint: #26312a;
+    --tint-active: #2c3a2c;
+    --ink: #edf0e5;
+    --ink-hover: #d9dfcf;
+    --muted: #9ba79a;
+    --line: #2f3a32;
+    --line-strong: #46534a;
+    --accent: #b5c26a;
+    --accent-soft: #2c3a2c;
+    --accent-ink: #171f1a;
+    --olive-muted: #9aa483;
+    --olive-soft: #aab876;
+    --olive-deep: #b5c26a;
+    --lime: #4b5a2f;
+    --sage: #c6d1b8;
+    --gold: #d2b98a;
+    --warn-bg: #2f2a1f;
+    --warn-fg: #d2b98a;
+    --danger-bg: #3a2320;
+    --danger-line: #5a3630;
+    --danger-fg: #e6a79b;
+    --avoid-bg: #3a2a22;
+    --avoid-line: #6a4a38;
+    --avoid-fg: #e0b79f;
+    --shadow: none;
+    --shadow-lg: 0 12px 28px rgb(0 0 0 / 0.35);
+    --shadow-dialog: 0 20px 100px rgb(0 0 0 / 0.6);
+    --shadow-toast: 0 8px 35px rgb(0 0 0 / 0.5);
+    --backdrop: rgb(0 0 0 / 0.55);
 
-    --seg-ingredient: #8ccf98;  --seg-ingredient-bg: #1d3323;
-    --seg-equipment: #a4b4ea;   --seg-equipment-bg: #202a45;
-    --seg-temperature: #f1957a; --seg-temperature-bg: #45241a;
-    --seg-time: #e2c273;        --seg-time-bg: #3b2f14;
-    --seg-technique: #cfa7dd;   --seg-technique-bg: #35243c;
-    --seg-tip: #86cdd4;         --seg-tip-bg: #173538;
+    --seg-ingredient: #b5c26a;  --seg-ingredient-bg: #2c3a2c;
+    --seg-equipment: #a9bcc6;   --seg-equipment-bg: #26333a;
+    --seg-temperature: #e8a084; --seg-temperature-bg: #3d2820;
+    --seg-time: #d2b98a;        --seg-time-bg: #33301f;
+    --seg-technique: #c3b3d1;   --seg-technique-bg: #302a38;
+    --seg-tip: #c6d1b8;         --seg-tip-bg: #243328;
   }
 }
 
@@ -61,17 +103,26 @@
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-tint: var(--tint);
+  --color-tint-active: var(--tint-active);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --color-accent-ink: var(--accent-ink);
+  --color-olive-muted: var(--olive-muted);
+  --color-olive-soft: var(--olive-soft);
+  --color-lime: var(--lime);
   --color-sage: var(--sage);
   --color-gold: var(--gold);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
   --radius-card: var(--radius);
+  --radius-field: var(--radius-sm);
+  --shadow-card-hover: var(--shadow-lg);
+  --shadow-dialog: var(--shadow-dialog);
 }
 
 html { color-scheme: light dark; }
@@ -80,99 +131,369 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans);
+  font-size: 0.9375rem;      /* 15px, Savour .intro */
+  line-height: 1.7;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* One focus treatment for everything, from Savour. */
+:where(button, a, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
 }
 
 /* Reusable primitives live in the components layer so Tailwind utilities
-   (a later layer) can override them: `select w-auto`, `input pl-9`. Unlayered
-   rules would beat utilities regardless of specificity. */
+   (a later layer) can override them: `select w-auto`, `input pl-9`. */
 @layer components {
-.display { font-family: var(--font-display); font-weight: 500; letter-spacing: -0.01em; line-height: 1.1; }
-.eyebrow { font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
-.label { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
-.text-muted { color: var(--muted); }
 
+/* ---------- Type ---------- */
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-variation-settings: "SOFT" 50;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+}
+.display em { font-style: italic; font-weight: 400; color: var(--accent); }
+.display-xl { font-size: clamp(2.75rem, 5.5vw, 4rem); letter-spacing: -0.03em; }   /* 44 to 64px, Savour h1 */
+.display-lg { font-size: clamp(2.25rem, 4vw, 3.3125rem); letter-spacing: -0.03em; } /* 36 to 53px, detail h1 */
+.display-md { font-size: clamp(1.625rem, 2.5vw, 1.875rem); }                       /* 26 to 30px, h2 */
+.display-sm { font-size: 1.5rem; line-height: 1.2; }                                /* 24px, card h3 */
+.display-xs { font-size: 1.3125rem; line-height: 1.3; }                             /* 21px, tile title */
+.eyebrow {
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--olive-muted);
+  font-weight: 600;
+}
+.card-eyebrow {
+  font-size: 0.6875rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 500;
+}
+.lead { font-size: 0.9375rem; line-height: 1.8; color: var(--muted); max-width: 46rem; }
+.label { font-size: 0.75rem; font-weight: 500; color: var(--ink); }
+.label small, .helper { font-size: 0.75rem; font-weight: 400; color: var(--muted); letter-spacing: 0; }
+.caption { font-size: 0.75rem; line-height: 1.7; color: var(--muted); }
+.text-muted { color: var(--muted); }
+.step-number {
+  font-family: var(--font-display);
+  font-size: 1.4375rem;
+  color: var(--olive-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Surfaces ---------- */
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
-
-.input, .textarea, .select {
-  width: 100%;
-  padding: 0.6rem 0.8rem;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  font: inherit;
-  color: var(--ink);
-  outline: none;
-  transition: border-color 120ms, box-shadow 120ms;
+.card-hover { transition: transform 0.2s, box-shadow 0.2s; }
+.card-hover:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.section-card { padding: 1.625rem; border-radius: 14px; }
+@media (max-width: 750px) { .section-card { padding: 1.25rem; } }
+.tint-panel { background: var(--tint); border-radius: 12px; padding: 1.25rem; }
+.info-box {
+  display: flex; align-items: flex-start; gap: 0.8125rem;
+  background: var(--tint); border-radius: 10px; padding: 0.9375rem;
+  font-size: 0.8125rem; line-height: 1.7;
 }
-.input:focus, .textarea:focus, .select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-.textarea { min-height: 7rem; resize: vertical; line-height: 1.5; }
+.info-box svg { flex-shrink: 0; margin-top: 3px; }
+.note-warn { background: var(--warn-bg); color: var(--warn-fg); border-radius: var(--radius-sm); padding: 0.9375rem 1.125rem; font-size: 0.8125rem; line-height: 1.7; }
+.note-danger { background: var(--danger-bg); color: var(--danger-fg); border: 1px solid var(--danger-line); border-radius: var(--radius-sm); padding: 0.875rem 1rem; font-size: 0.8125rem; line-height: 1.6; }
+.note-status { display: flex; align-items: flex-start; gap: 0.5625rem; background: var(--seg-tip-bg); color: var(--seg-tip); border: 1px solid color-mix(in oklab, var(--seg-tip) 25%, var(--surface)); border-radius: var(--radius-sm); padding: 0.875rem 1rem; font-size: 0.8125rem; line-height: 1.6; }
+.note-status svg { flex: 0 0 auto; margin-top: 2px; animation: pulse-soft 1.2s ease-in-out infinite; }
+.empty-state {
+  text-align: center; border: 1px dashed var(--line-strong); border-radius: 15px;
+  padding: 4rem 1.25rem;
+}
+.empty-state > svg { margin: 0 auto; color: var(--olive-soft); }
+.empty-state p { font-size: 0.8125rem; line-height: 1.8; color: var(--muted); margin: 1rem 0 1.5rem; }
+.divider { border-top: 1px solid var(--line); }
 
+/* ---------- Buttons ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
-  border-radius: 999px; padding: 0.55rem 1rem; font-weight: 600; font-size: 0.875rem;
-  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
-  cursor: pointer; transition: transform 120ms, background 120ms, border-color 120ms, opacity 120ms;
-  white-space: nowrap;
+  border-radius: var(--radius-pill); padding: 0.75rem 1.25rem;
+  font-weight: 500; font-size: 0.8125rem; line-height: 1.2;
+  border: 1px solid var(--line); background: transparent; color: var(--ink);
+  cursor: pointer; white-space: nowrap;
+  transition: background 0.18s, transform 0.18s, color 0.18s, border-color 0.18s;
 }
-.btn:hover { background: var(--surface-2); }
+.btn:hover { background: var(--tint); }
 .btn:active { transform: translateY(1px); }
-.btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
-.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-.btn-primary:hover { background: color-mix(in oklab, var(--accent) 88%, black); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.btn-primary { background: var(--ink); color: var(--accent-ink); border-color: var(--ink); }
+.btn-primary:hover { background: var(--ink-hover); border-color: var(--ink-hover); transform: translateY(-1px); }
 .btn-ghost { border-color: transparent; background: transparent; }
-.btn-ghost:hover { background: var(--surface-2); }
-.btn-sm { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
-.btn-icon { padding: 0.5rem; border-radius: 999px; }
+.btn-ghost:hover { background: var(--tint); }
+.btn-text { border: 0; border-radius: 0; padding: 0.4375rem 0; background: transparent; }
+.btn-text:hover { background: transparent; color: var(--accent); }
+.btn-link { border: 0; border-bottom: 1px solid var(--line-strong); border-radius: 0; padding: 0 0 0.4375rem; background: transparent; }
+.btn-link:hover { background: transparent; border-bottom-color: var(--accent); }
+.btn-sm { padding: 0.625rem 0.9375rem; font-size: 0.75rem; }
+.btn-icon { padding: 0.5625rem; border-radius: 50%; border-color: transparent; }
+.btn-round { width: 3.0625rem; height: 3.0625rem; padding: 0; border-radius: 50%; }
+.btn-full { width: 100%; }
+.btn[data-active="true"], .btn.is-active { background: var(--ink); color: var(--accent-ink); border-color: var(--ink); }
 
-.chip {
-  display: inline-flex; align-items: center; gap: 0.35rem;
-  border-radius: 999px; padding: 0.3rem 0.7rem; font-size: 0.78rem; font-weight: 600;
-  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
-  cursor: pointer; transition: background 120ms, border-color 120ms, color 120ms;
+/* Floating photo controls, from Savour .save-btn */
+.btn-photo {
+  width: 2.0625rem; height: 2.0625rem; padding: 0; border: 0; border-radius: 50%;
+  background: rgb(250 250 245 / 0.93); color: #263c30;
 }
-.chip:hover { background: var(--surface-2); }
-.chip[data-active="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn-photo[data-active="true"] { background: #e4ecb2; }
+
+/* ---------- Chips, badges, tags ---------- */
+.chip {
+  display: inline-flex; align-items: center; gap: 0.375rem;
+  border-radius: var(--radius-pill); padding: 0.625rem 0.9375rem;
+  font-size: 0.75rem; font-weight: 400; white-space: nowrap;
+  border: 1px solid var(--line); background: transparent; color: var(--ink);
+  cursor: pointer; transition: background 0.18s, border-color 0.18s, color 0.18s;
+}
+.chip:hover { background: var(--tint); }
+.chip[data-active="true"] { background: var(--ink); color: var(--accent-ink); border-color: var(--ink); }
+.chip-avoid[data-active="true"] { background: var(--avoid-bg); color: var(--avoid-fg); border-color: var(--avoid-line); }
 
 .badge {
-  display: inline-flex; align-items: center; gap: 0.3rem;
-  border-radius: 999px; padding: 0.2rem 0.55rem; font-size: 0.7rem; font-weight: 600;
-  letter-spacing: 0.02em; background: var(--surface-2); color: var(--ink);
+  display: inline-flex; align-items: center; gap: 0.4375rem;
+  border-radius: 6px; padding: 0.5rem 0.6875rem;
+  font-size: 0.75rem; font-weight: 400; line-height: 1;
+  background: var(--tint); color: var(--ink);
+}
+.badge-sm { padding: 0.4375rem 0.5625rem; font-size: 0.6875rem; }
+.badge-photo {
+  display: inline-flex; align-items: center; gap: 0.375rem;
+  border-radius: 20px; padding: 0.4375rem 0.6875rem;
+  font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.04em;
+  background: rgb(249 248 243 / 0.94); color: #263c30;
+}
+.count {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.5625rem; height: 1.5625rem; border-radius: 50%;
+  background: var(--tint); font-family: var(--font-sans); font-size: 0.6875rem;
 }
 
-/* Illustrated tile used by the profile wizard. --hue is set inline. */
+/* ---------- Wizard tile, from Savour .choice ---------- */
 .tile {
-  --tile-bg: hsl(var(--hue) 55% 93%);
-  --tile-fg: hsl(var(--hue) 45% 32%);
-  position: relative; display: flex; flex-direction: column; gap: 0.5rem;
-  text-align: left; padding: 1rem; border-radius: var(--radius);
-  background: var(--surface); border: 1.5px solid var(--line); box-shadow: var(--shadow);
-  cursor: pointer; transition: transform 140ms, border-color 140ms, box-shadow 140ms;
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;
+  text-align: left; padding: 1.4375rem 1.1875rem; border-radius: var(--radius-md);
+  background: var(--surface); border: 1px solid var(--line); box-shadow: none;
+  color: var(--ink); cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, transform 0.18s;
 }
-.tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-.tile[data-active="true"] { border-color: var(--tile-fg); background: var(--tile-bg); }
+.tile:hover { background: var(--tint); }
+.tile[data-active="true"] { background: var(--tint-active); border-color: var(--olive-soft); }
+.tile:disabled { opacity: 0.45; cursor: not-allowed; }
 .tile-art {
-  width: 3rem; height: 3rem; border-radius: 14px; display: grid; place-items: center;
-  background: var(--tile-bg); color: var(--tile-fg);
+  width: 3.875rem; height: 3.875rem; display: grid; place-items: center;
+  margin-bottom: 0.5rem; color: var(--olive-soft); background: transparent; border-radius: 0;
 }
-.tile[data-active="true"] .tile-art { background: var(--tile-fg); color: var(--tile-bg); }
-@media (prefers-color-scheme: dark) {
-  .tile { --tile-bg: hsl(var(--hue) 30% 18%); --tile-fg: hsl(var(--hue) 55% 72%); }
+.tile[data-active="true"] .tile-art { color: var(--ink); }
+.tile-title { font-family: var(--font-display); font-weight: 400; font-size: 1.3125rem; line-height: 1.2; letter-spacing: -0.01em; }
+.tile-desc { font-size: 0.75rem; line-height: 1.7; color: var(--muted); }
+.tile-check { position: absolute; right: 0.9375rem; top: 0.9375rem; color: var(--ink); }
+.tile-compact { min-height: 8.125rem; gap: 0.9375rem; }
+.tile-compact .tile-title { font-size: 1.125rem; }
+
+/* ---------- Ingredient row and steps ---------- */
+.ingredient {
+  display: flex; align-items: center; gap: 0.625rem;
+  border: 1px solid color-mix(in oklab, var(--line) 60%, var(--surface));
+  border-radius: var(--radius-sm); padding: 0.75rem 0.625rem; cursor: pointer;
 }
+.ingredient input[type="checkbox"] { accent-color: var(--olive-deep); width: 0.75rem; height: 0.75rem; flex-shrink: 0; }
+.ingredient-art { width: 2.8125rem; height: 2.8125rem; flex-shrink: 0; display: grid; place-items: center; }
+.ingredient-art img, .ingredient-art svg { width: 2.25rem; height: 2.25rem; object-fit: contain; }
+.ingredient-name { display: block; font-size: 0.8125rem; font-weight: 500; }
+.ingredient-qty { display: block; font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; font-variant-numeric: tabular-nums; }
+.ingredient[data-checked="true"] { opacity: 0.45; }
+.ingredient[data-checked="true"] .ingredient-name { text-decoration: line-through; }
+.step { display: flex; align-items: flex-start; gap: 1.25rem; border-top: 1px solid var(--line); padding: 1.5625rem 0; }
+.step:last-child { padding-bottom: 0; }
+.step-title { font-family: var(--font-display); font-weight: 400; font-size: 1.4375rem; line-height: 1.2; margin: 0.25rem 0 0.625rem; }
+.stat { display: flex; flex-direction: column; align-items: center; gap: 0.4375rem; font-size: 0.75rem; color: var(--muted); }
+.stat svg { width: 1.3125rem; height: 1.3125rem; color: var(--ink); }
+.stat b { font-size: 0.8125rem; font-weight: 500; color: var(--ink); }
+
+/* ---------- Forms ---------- */
+.input, .textarea, .select {
+  width: 100%;
+  padding: 0.8125rem 0.9375rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.18s;
+}
+.input:hover, .textarea:hover, .select:hover { border-color: var(--line-strong); }
+.input::placeholder, .textarea::placeholder { color: var(--muted); opacity: 0.8; }
+.textarea { min-height: 7.5rem; resize: vertical; line-height: 1.6; }
+.select { padding: 0.625rem; border-radius: 8px; background: transparent; }
+.select-quiet { border: 0; padding: 0.3125rem; font-size: 0.75rem; color: var(--muted); background: transparent; }
+.input-underline { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 0.625rem 0; background: transparent; font-size: 0.8125rem; }
+.textarea-journal {
+  border: 0; background: transparent; padding: 0.3125rem; min-height: 8.125rem;
+  font-family: var(--font-display); font-size: 1.375rem; line-height: 1.6; font-variation-settings: "SOFT" 50;
+}
+.field { display: flex; flex-direction: column; gap: 0.625rem; font-size: 0.75rem; }
+.upload-zone {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.75rem;
+  min-height: 11.25rem; background: var(--tint); border: 1px dashed var(--olive-soft);
+  border-radius: 12px; padding: 1.25rem; text-align: center; font-size: 0.8125rem; cursor: pointer;
+}
+.option-card {
+  display: flex; flex-direction: column; align-items: flex-start; text-align: left;
+  border: 1px solid var(--line); border-radius: 12px; padding: 1.125rem 0.9375rem;
+  background: transparent; cursor: pointer; transition: background 0.18s, border-color 0.18s;
+}
+.option-card:hover { background: var(--tint); }
+.option-card[data-active="true"] { background: var(--tint-active); border-color: var(--olive-soft); }
+.option-card b { font-family: var(--font-display); font-weight: 400; font-size: 1.125rem; }
+.option-card span { font-size: 0.75rem; line-height: 1.6; color: var(--muted); margin-top: 0.4375rem; }
+
+/* ---------- Overlays ---------- */
+.dialog {
+  padding: 0; border: 1px solid var(--line); border-radius: var(--radius-lg);
+  background: var(--bg); color: var(--ink);
+  max-width: 40rem; width: calc(100% - 32px); max-height: 90vh; margin: auto;
+  box-shadow: var(--shadow-dialog);
+}
+.dialog::backdrop { background: var(--backdrop); backdrop-filter: blur(4px); }
+.dialog-inner { padding: 1.875rem; }
+.dialog-head { display: flex; justify-content: space-between; align-items: center; gap: 1.25rem; margin-bottom: 1.25rem; }
+.drawer { margin: 0 0 0 auto; height: 100dvh; max-height: 100dvh; max-width: 30.625rem; border-radius: 18px 0 0 18px; }
+.drawer .dialog-inner { padding: 2.1875rem 1.875rem; }
+@media (max-width: 750px) { .dialog-inner, .drawer .dialog-inner { padding: 1.5625rem; } }
+@media (max-width: 450px) { .dialog { width: calc(100% - 16px); } .drawer { width: 100%; max-width: none; border-radius: 0; } }
+.menu-item {
+  width: 100%; display: flex; justify-content: space-between; align-items: center;
+  border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 1.375rem 0;
+  background: transparent; color: var(--ink); font-size: 0.9375rem; cursor: pointer;
+}
+.menu-item:hover { color: var(--accent); }
+.toast {
+  position: fixed; bottom: 1.5625rem; left: 50%; transform: translateX(-50%);
+  background: var(--ink); color: var(--accent-ink); border-radius: 12px;
+  padding: 0.75rem 0.9375rem 0.75rem 1.375rem; box-shadow: var(--shadow-toast);
+  display: flex; align-items: center; gap: 0.9375rem;
+  font-size: 0.8125rem; line-height: 1.6; z-index: 1000; width: max-content; max-width: 90vw;
+}
+
+/* ---------- Layout helpers ---------- */
+.container-page { max-width: 90rem; margin-inline: auto; padding-inline: 6%; }
+@media (max-width: 1100px) { .container-page { padding-inline: 4%; } }
+@media (max-width: 750px) { .container-page { padding-inline: 5%; } }
+.page-top { padding-top: 3.625rem; }
+@media (max-width: 750px) { .page-top { padding-top: 2.1875rem; } }
+.recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(18.75rem, 1fr)); gap: 1.5625rem; }
+@media (max-width: 750px) { .recipe-grid { gap: 0.875rem; } }
+.tile-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.9375rem; }
+@media (max-width: 1100px) { .tile-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 750px) { .tile-grid { grid-template-columns: repeat(2, 1fr); } }
+.detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 18.125rem; gap: 2.625rem; }
+@media (max-width: 1100px) { .detail-layout { grid-template-columns: minmax(0, 1fr) 15.625rem; gap: 1.5625rem; } }
+@media (max-width: 750px) { .detail-layout { grid-template-columns: 1fr; } }
+.nav-link { font-size: 0.8125rem; color: var(--muted); padding-block: 1.5rem; transition: color 0.18s; }
+.nav-link:hover { color: var(--ink); }
+.nav-link[aria-current="page"] { color: var(--ink); box-shadow: inset 0 -2px var(--ink); }
+.brand { font-family: var(--font-display); font-weight: 600; font-size: 1.75rem; letter-spacing: -0.04em; line-height: 1; }
+.brand-star { color: var(--accent); padding-left: 0.125rem; }
+.photo-frame { position: relative; overflow: hidden; background: var(--tint); aspect-ratio: 4 / 3; }
+.photo-frame img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s; }
+.card-hover:hover .photo-frame img { transform: scale(1.03); }
+.photo-hero { width: 100%; max-height: 29.375rem; object-fit: cover; border-radius: var(--radius); }
+.thumb { width: 4.6875rem; height: 4.6875rem; object-fit: cover; border-radius: var(--radius-sm); }
 
 /* Thin, quiet scrollbars for drawers and menus. */
 .scroll-quiet { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
 
 }
 
-/* Subtle shimmer for pending imagery. */
+/* ---------- Motion ---------- */
+@keyframes pulse-soft { 50% { opacity: 0.35; transform: scale(0.86); } }
+@keyframes slide-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@media (prefers-reduced-motion: no-preference) {
+  .drawer[open] { animation: slide-in 0.25s ease-out; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-hover, .btn, .chip, .tile, .photo-frame img { transition: none; }
+  .note-status svg { animation: none; }
+}
+
+/* Subtle shimmer for pending imagery. Savour has none; Palate needs it. */
 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 .shimmer {
-  background: linear-gradient(90deg, var(--surface-2) 25%, var(--line) 50%, var(--surface-2) 75%);
+  background: linear-gradient(90deg, var(--tint) 25%, var(--line) 50%, var(--tint) 75%);
   background-size: 200% 100%; animation: shimmer 1.6s linear infinite;
+}
+
+/* Watercolor ingredient sprite, from Savour IngredientArt. */
+.ingredient-sprite {
+  display: inline-block; width: 100%; height: 100%; min-width: 2.25rem; min-height: 2.25rem;
+  background-repeat: no-repeat; background-size: 600% 600%;
+  border-radius: 8px; mix-blend-mode: multiply; vertical-align: middle;
+}
+@media (prefers-color-scheme: dark) {
+  .ingredient-sprite { mix-blend-mode: normal; border-radius: 50%; background-color: #f9f8f3; }
+}
+
+/* ---------- Palate additions (not in Savour) ---------- */
+@layer components {
+  /* Lead paragraph under a title; alias of .lead for the detail page. */
+  .intro { font-size: 1rem; line-height: 1.75; color: var(--muted); }
+
+  /* Stats strip on the detail page: labels muted, values ink, no pills. */
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+    gap: 1rem 1.5rem; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    padding: 1.125rem 0;
+  }
+  .stats dt { font-size: 0.6875rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--olive-muted); font-weight: 600; }
+
+  /* "Why this recipe?" disclosure, from Savour .why */
+  .why { background: var(--tint); border-radius: 12px; }
+
+  /* Quiet call-to-action in the detail sidebar, from Savour .aside-note */
+  .aside-note { background: var(--tint); border-radius: 14px; padding: 1.375rem; }
+
+  /* Wizard stepper: one horizontal row of pills, from Savour .wizard-steps */
+  .wizard-steps { display: flex; flex-wrap: wrap; gap: 0.5rem; border-bottom: 1px solid var(--line); padding-bottom: 1.25rem; }
+  .wizard-step {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    border-radius: var(--radius-pill); padding: 0.5rem 0.875rem 0.5rem 0.5rem;
+    font-size: 0.8125rem; color: var(--muted); background: transparent; border: 1px solid transparent;
+    cursor: pointer; transition: background 0.18s, color 0.18s;
+  }
+  .wizard-step:hover { background: var(--tint); color: var(--ink); }
+  .wizard-step[data-active="true"] { background: var(--ink); color: var(--accent-ink); }
+  .wizard-step[data-active="true"] .text-muted { color: var(--accent-ink); opacity: 0.7; }
+  .wizard-step-num {
+    display: grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%;
+    border: 1px solid var(--line-strong); font-size: 0.6875rem; font-weight: 600; color: inherit;
+  }
+  .wizard-step-num[data-done="true"] { background: var(--accent-soft); border-color: transparent; color: var(--olive-deep); }
+  .wizard-step[data-active="true"] .wizard-step-num { border-color: rgb(255 255 255 / 0.35); }
+  .wizard-step[data-active="true"] .wizard-step-num[data-done="true"] { background: rgb(255 255 255 / 0.18); color: var(--accent-ink); }
+
+  /* Tile art slot for lucide glyphs (Palate has no watercolor sprite yet). */
+  .tile-art { width: 2.75rem; height: 2.75rem; border-radius: 50%; background: var(--tint); color: var(--olive-deep); margin-bottom: 0.625rem; }
+  .tile[data-active="true"] .tile-art { background: var(--surface); color: var(--ink); }
+  .tile-compact { flex-direction: row; align-items: center; gap: 0.875rem; padding: 1rem 1.125rem; min-height: 0; }
+  .tile-compact .tile-art { width: 2.25rem; height: 2.25rem; margin-bottom: 0; flex-shrink: 0; }
+  .tile-desc { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+  .tile:hover .tile-desc, .tile:focus-visible .tile-desc, .tile[data-active="true"] .tile-desc { -webkit-line-clamp: unset; }
+
+  /* Chat affordance on cards: hover and focus reveal, always visible on touch. */
+  @media (hover: none) { .card-chat { opacity: 1; } }
 }

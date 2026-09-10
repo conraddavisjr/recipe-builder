@@ -26,14 +26,14 @@ export function NavMenu() {
           <motion.button
             type="button"
             aria-label="Close menu"
-            className="fixed inset-0 z-40 bg-ink/30"
+            className="fixed inset-0 z-40 backdrop-blur-[2px]" style={{ background: "var(--backdrop)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setMenuOpen(false)}
           />
           <motion.nav
-            className="fixed inset-y-0 left-0 z-50 flex w-[300px] max-w-[85vw] flex-col bg-surface shadow-[var(--shadow-lg)]"
+            className="fixed inset-y-0 left-0 z-50 flex w-[340px] max-w-[88vw] flex-col bg-bg shadow-[var(--shadow-dialog)]"
             initial={{ x: -320 }}
             animate={{ x: 0 }}
             exit={{ x: -320 }}
@@ -41,12 +41,12 @@ export function NavMenu() {
             aria-label="Main navigation"
           >
             <div className="flex h-14 items-center justify-between border-b border-line px-4">
-              <span className="display text-lg">{APP_NAME}</span>
+              <span className="brand lowercase">{APP_NAME}<span className="brand-star" aria-hidden>✳</span></span>
               <button type="button" className="btn btn-ghost btn-icon" aria-label="Close" onClick={() => setMenuOpen(false)}>
                 <X size={18} />
               </button>
             </div>
-            <ul className="flex-1 space-y-1 p-3">
+            <ul className="flex-1 px-6 py-2">
               {LINKS.map(({ href, label, hint, icon: Icon }) => {
                 const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
                 return (
@@ -55,22 +55,24 @@ export function NavMenu() {
                       href={href}
                       onClick={() => setMenuOpen(false)}
                       data-active={active}
-                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-surface-2 data-[active=true]:bg-accent-soft"
+                      className="menu-item"
                     >
-                      <Icon size={18} className="shrink-0" style={{ color: active ? "var(--accent)" : "var(--muted)" }} />
-                      <span className="flex flex-col leading-tight">
-                        <span className="font-semibold text-sm">{label}</span>
-                        <span className="text-xs text-muted">{hint}</span>
+                      <span className="flex items-center gap-3">
+                        <Icon size={17} className="shrink-0" style={{ color: active ? "var(--accent)" : "var(--muted)" }} />
+                        <span className="flex flex-col leading-tight">
+                          <span className={active ? "font-medium" : ""}>{label}</span>
+                          <span className="text-xs text-muted">{hint}</span>
+                        </span>
                       </span>
                     </Link>
                   </li>
                 );
               })}
             </ul>
-            <div className="border-t border-line p-3">
+            <div className="px-6 py-5">
               <button
                 type="button"
-                className="btn w-full justify-start"
+                className="btn w-full"
                 onClick={() => {
                   setMenuOpen(false);
                   setSettingsOpen(true);

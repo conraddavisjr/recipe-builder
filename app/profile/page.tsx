@@ -5,11 +5,12 @@ export const metadata = { title: "Taste profile" };
 
 export default function ProfilePage() {
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8">
+    <main className="mx-auto max-w-[90rem] px-[5%] py-12">
       <PageHeader
-        eyebrow="Profile"
-        title="Your taste profile"
-        description="Walk through once, then come back any time. Click any card to switch it on or off; the agent reads the current state before every run."
+        eyebrow="A recipe for your taste"
+        title="Let's get to know"
+        titleEm="your kind of good."
+        description="A few small choices. Click any card to switch it on or off; revisit these anytime."
       />
       <ProfileWizard />
     </main>

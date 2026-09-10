@@ -28,6 +28,10 @@ import { Tile } from "@/components/ui/Tile";
 
 interface StepDef {
   category: ProfileCategory;
+  /** Glyph plus label only; no description. */
+  compact?: boolean;
+  /** Label for the stepper. */
+  short: string;
   eyebrow: string;
   title: string;
   description: string;
@@ -41,6 +45,7 @@ type SelectionState = Record<ProfileCategory, Set<string>>;
 const STEPS: StepDef[] = [
   {
     category: "cuisine_love",
+    short: "Cuisines",
     eyebrow: "Step 1",
     title: "Cuisines you love",
     description: "Pick everything that makes you happy. The more honest the list, the sharper the recommendations.",
@@ -48,13 +53,16 @@ const STEPS: StepDef[] = [
   },
   {
     category: "cuisine_avoid",
+    short: "Skip these",
     eyebrow: "Step 2",
     title: "Cuisines to stay away from",
     description: "Anything here is off the table entirely. Leave it empty if you are open to everything.",
     items: () => CUISINES,
+    compact: true,
   },
   {
     category: "flavor",
+    short: "Flavors",
     eyebrow: "Step 3",
     title: "The flavors underneath",
     description: "These are the taste profiles typical of the cuisines you love. Emphasize the ones you truly crave; the agent maps recipes to these, not just to cuisine names.",
@@ -66,6 +74,7 @@ const STEPS: StepDef[] = [
   },
   {
     category: "presentation",
+    short: "Presentation",
     eyebrow: "Step 4",
     title: "How you like food to look",
     description: "Refined and composed, rustic and generous, comforting and gooey. Choose as many as fit.",
@@ -73,6 +82,7 @@ const STEPS: StepDef[] = [
   },
   {
     category: "health",
+    short: "Balance",
     eyebrow: "Step 5",
     title: "Health profiles to cover",
     description: "Pick a range. The agent will spread each batch across what you choose, so a decadent plate and a raw bowl can arrive on the same day.",
@@ -80,6 +90,7 @@ const STEPS: StepDef[] = [
   },
   {
     category: "diet_absolute",
+    short: "Non-negotiables",
     eyebrow: "Step 6",
     title: "Hard rules",
     description: "Absolute constraints the agent must never break, no matter what else it learns about you.",
@@ -87,10 +98,12 @@ const STEPS: StepDef[] = [
   },
   {
     category: "cookware",
+    short: "Your kitchen",
     eyebrow: "Step 7",
     title: "What is in your kitchen",
     description: "Recipes are chosen to suit the equipment you actually have. A pizza oven or a smoker opens whole categories.",
     items: () => COOKWARE,
+    compact: true,
   },
 ];
 
@@ -178,14 +191,14 @@ export function ProfileWizard() {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[220px_1fr]">
-      {/* Stepper: every step is clickable so revisiting is a single tap. */}
-      <ol className="flex gap-2 overflow-x-auto lg:flex-col lg:gap-1" aria-label="Profile steps">
+    <div>
+      {/* Stepper: a single horizontal row, every step clickable. */}
+      <ol className="wizard-steps" aria-label="Profile steps">
         {STEPS.map((s, i) => {
           const count = selectedCount(s.category);
           const active = i === step;
           return (
-            <li key={s.category} className="shrink-0">
+            <li key={s.category}>
               <button
                 type="button"
                 onClick={() => {
@@ -193,22 +206,14 @@ export function ProfileWizard() {
                   setStep(i);
                 }}
                 data-active={active}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-surface-2 data-[active=true]:bg-surface data-[active=true]:shadow-[var(--shadow)]"
+                className="wizard-step"
+                aria-current={active ? "step" : undefined}
               >
-                <span
-                  className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold"
-                  style={{
-                    background: count ? "var(--accent)" : "var(--surface-2)",
-                    color: count ? "var(--accent-ink)" : "var(--muted)",
-                  }}
-                >
-                  {count ? <Check size={14} strokeWidth={3} /> : i + 1}
+                <span className="wizard-step-num" data-done={count > 0}>
+                  {count ? <Check size={12} strokeWidth={3} /> : i + 1}
                 </span>
-                <span className="hidden flex-col leading-tight lg:flex">
-                  <span className="text-sm font-semibold">{s.title}</span>
-                  <span className="text-xs text-muted">{count ? `${count} selected` : "Nothing yet"}</span>
-                </span>
-                <span className="text-sm font-semibold lg:hidden">{i + 1}</span>
+                <span className="whitespace-nowrap">{s.short}</span>
+                {count > 0 && <span className="tabular-nums text-muted">{count}</span>}
               </button>
             </li>
           );
@@ -227,21 +232,21 @@ export function ProfileWizard() {
             aria-labelledby={`step-${current.category}`}
           >
             <p className="eyebrow">{current.eyebrow} of {STEPS.length}</p>
-            <h2 id={`step-${current.category}`} className="display mt-1 text-2xl sm:text-3xl">
+            <h2 id={`step-${current.category}`} className="display mt-3 text-3xl sm:text-4xl">
               {current.title}
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-muted">{current.description}</p>
 
             {!loaded ? (
-              <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="shimmer h-36 rounded-[var(--radius)]" />
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="shimmer h-32 rounded-[var(--radius)]" />
                 ))}
               </div>
             ) : items.length === 0 ? (
               <p className="mt-6 text-sm text-muted">{current.emptyHint}</p>
             ) : (
-              <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              <div className={`mt-6 grid gap-3 sm:grid-cols-2 ${current.compact ? "lg:grid-cols-3 xl:grid-cols-5" : "lg:grid-cols-3 xl:grid-cols-4"}`}>
                 {items.map((item) => (
                   <Tile
                     key={item.key}
@@ -250,6 +255,7 @@ export function ProfileWizard() {
                     active={state[current.category].has(item.key)}
                     busy={pending.has(`${current.category}:${item.key}`)}
                     onToggle={() => toggle(current.category, item.key)}
+                    compact={current.compact}
                   />
                 ))}
               </div>
@@ -265,7 +271,7 @@ export function ProfileWizard() {
             {pending.size > 0 ? (
               <span className="inline-flex items-center gap-1"><LoaderCircle size={12} className="animate-spin" /> Saving</span>
             ) : (
-              `${totalSelected} preferences saved. Every click is saved instantly.`
+              `Saved · ${totalSelected} preferences`
             )}
           </p>
           {step < STEPS.length - 1 ? (

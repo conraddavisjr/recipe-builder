@@ -34,14 +34,14 @@ export function InstructionDrawer() {
           <motion.button
             type="button"
             aria-label="Close drawer"
-            className="fixed inset-0 z-40 bg-ink/30"
+            className="fixed inset-0 z-40 backdrop-blur-[2px]" style={{ background: "var(--backdrop)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={closeDrawer}
           />
           <motion.aside
-            className="fixed inset-y-0 right-0 z-50 flex w-[460px] max-w-[95vw] flex-col bg-surface shadow-[var(--shadow-lg)]"
+            className="fixed inset-y-0 right-0 z-50 flex w-[490px] max-w-[95vw] flex-col rounded-l-[18px] bg-bg shadow-[var(--shadow-dialog)]"
             initial={{ x: 480 }}
             animate={{ x: 0 }}
             exit={{ x: 480 }}
@@ -49,7 +49,7 @@ export function InstructionDrawer() {
             role="dialog"
             aria-label="Instructions for the agent"
           >
-            <div className="flex h-14 items-center justify-between border-b border-line px-4">
+            <div className="flex h-[4.5rem] items-center justify-between border-b border-line px-7">
               <div className="min-w-0 leading-tight">
                 <p className="eyebrow">Tell the agent</p>
                 <p className="truncate font-semibold text-sm">
@@ -60,7 +60,7 @@ export function InstructionDrawer() {
                 <X size={18} />
               </button>
             </div>
-            <div className="scroll-quiet flex-1 space-y-6 overflow-y-auto p-4">
+            <div className="scroll-quiet flex-1 space-y-8 overflow-y-auto px-7 py-7">
               <InstructionComposer
                 autoFocus
                 recipeId={drawer.context.recipeId}
@@ -69,7 +69,7 @@ export function InstructionDrawer() {
               />
               <section>
                 <div className="mb-2 flex items-baseline justify-between">
-                  <h3 className="text-sm font-semibold">What the agent already knows</h3>
+                  <h3 className="display text-lg">What the agent already knows</h3>
                   <Link href="/instructions" onClick={closeDrawer} className="text-xs font-semibold" style={{ color: "var(--accent)" }}>
                     See all
                   </Link>

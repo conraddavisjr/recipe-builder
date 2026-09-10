@@ -98,11 +98,10 @@ function TierOption({ active, onClick, title, hint }: { active: boolean; onClick
       aria-checked={active}
       onClick={onClick}
       data-active={active}
-      className="rounded-xl border px-3 py-2 text-left transition data-[active=true]:border-accent data-[active=true]:bg-accent-soft"
-      style={{ borderColor: active ? "var(--accent)" : "var(--line)" }}
+      className="option-card"
     >
-      <span className="block text-sm font-semibold">{title}</span>
-      <span className="block text-xs text-muted">{hint}</span>
+      <b>{title}</b>
+      <span>{hint}</span>
     </button>
   );
 }

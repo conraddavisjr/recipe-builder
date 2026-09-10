@@ -46,7 +46,7 @@ export function InspirationList() {
           <ul className="space-y-3">
             {items.map((i) => (
               <li key={i.id}>
-                <Link href={`/inspirations/${i.id}`} className="card flex gap-4 p-3 transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-lg)]">
+                <Link href={`/inspirations/${i.id}`} className="card card-hover flex gap-4 p-3">
                   <span className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-xl bg-surface-2">
                     {i.photo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element

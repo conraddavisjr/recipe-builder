@@ -23,14 +23,14 @@ export function InstructionsPage() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,420px)_1fr]">
-      <div className="card h-fit p-5 lg:sticky lg:top-20">
+      <div className="card h-fit p-7 lg:sticky lg:top-24">
         <p className="eyebrow">New instruction</p>
-        <h2 className="display mb-4 text-xl">Point the agent</h2>
+        <h2 className="display display-md mb-5 mt-2">Point the agent</h2>
         <InstructionComposer onSaved={(ins) => setInstructions((list) => [ins, ...(list ?? [])])} />
       </div>
       <div className="space-y-8">
         <section>
-          <h2 className="display text-xl">Absolute truths</h2>
+          <h2 className="display display-md">Absolute truths</h2>
           <p className="mb-3 text-sm text-muted">Always applied. Nothing the agent learns later can override these.</p>
           {instructions ? (
             <InstructionList
@@ -42,7 +42,7 @@ export function InstructionsPage() {
           )}
         </section>
         <section>
-          <h2 className="display text-xl">Preferences</h2>
+          <h2 className="display display-md">Preferences</h2>
           <p className="mb-3 text-sm text-muted">Newest first. When two disagree, the newer one wins; mute or delete the old one if you want to be explicit.</p>
           {instructions ? (
             <InstructionList

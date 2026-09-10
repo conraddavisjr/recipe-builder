@@ -60,6 +60,17 @@ Verified 2026-09-10 in the browser and API:
 - History: status, progress, produced recipes, review outcome, token usage, and the exact prompt.
 - Fixes from live use: run settlement moved into the worker (a handler cannot see its own task as done) plus a self-healing sweep; CSS primitives moved into `@layer components` so utilities override them.
 
+## Restyle: Savour design system applied (2026-09-10)
+
+Two agents studied the sibling build: `docs/design/design-system.md` (creative director: tokens, type, components, motion, what to avoid, drop-in CSS) and `docs/design/usability-guardrails.md` (keep list, density diagnosis, step-segment redesign, acceptance checklist).
+Applied:
+- Ivory paper, forest-green ink, olive as the only accent; flat bordered cards with hover-only lift; two-line serif page headings with an olive italic phrase; tracked eyebrows; ink-filled primary pills. Derived dark palette keeps the forest temperature.
+- Steps render as prose with a monochrome facts strip (time, temperature, equipment, technique) under each title; only time and temperature are inline marks; "Show tags" restores the chip rendering and legend and persists in localStorage.
+- Cards show one eyebrow (cuisine and dish type), no pills; filters collapse into a popover with an active-filter row; three-column grid; chat icon in the meta row with hover, focus and touch reveal.
+- Detail page reading order: title, summary, actions, photo, stats strip, rationale, ingredients (two columns, equipment in the footer), method, feedback last; compact similar rows in a sticky column.
+- Wizard: horizontal stepper with counts, neutral inactive tiles, compact tiles for avoid and cookware, one-line descriptions that expand on hover.
+- Settings uses headings and dividers; instruction controls reveal on hover; inspiration provenance is a glyph with bar and label on hover.
+
 ## Known limitations
 
 - Image rendering is sequential per worker slice; a 5-recipe run with a cold ingredient-art cache takes 10-15 minutes locally. Concurrent slices (heartbeat plus self-kick) already overlap safely.

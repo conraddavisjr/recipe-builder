@@ -19,21 +19,21 @@ function formatQuantity(q: number | null, scale: number): string {
 export function IngredientRow({ ingredient, art, scale }: { ingredient: Ingredient; art?: IngredientArt; scale: number }) {
   const qty = formatQuantity(ingredient.quantity, scale);
   return (
-    <li className="flex items-center gap-3 py-2">
-      <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-white" style={{ boxShadow: "inset 0 0 0 1px var(--line)" }}>
+    <li className="flex items-center gap-3 border-b border-line py-2.5 last:border-b-0 sm:[&:nth-last-child(2)]:border-b-0">
+      <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg bg-white" style={{ boxShadow: "inset 0 0 0 1px var(--line)" }}>
         {art?.url && art.status === "done" ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={art.url} alt="" className="h-full w-full object-cover" loading="lazy" />
         ) : (
           <span className={art?.status === "pending" ? "shimmer grid h-full w-full place-items-center" : "text-muted"}>
-            {createElement(ingredientIcon(ingredient.ingredient_key), { size: 20, strokeWidth: 1.75, style: { color: "var(--seg-ingredient)" } })}
+            {createElement(ingredientIcon(ingredient.ingredient_key), { size: 18, strokeWidth: 1.75, className: "text-muted" })}
           </span>
         )}
       </span>
       <span className="min-w-0 flex-1 leading-tight">
         <span className="font-medium">
-          {qty && <span className="tabular-nums" style={{ color: "var(--seg-ingredient)" }}>{qty} {ingredient.unit} </span>}
           {ingredient.name}
+          {qty && <span className="ml-1.5 text-xs font-normal tabular-nums text-muted">{qty} {ingredient.unit}</span>}
         </span>
         {(ingredient.preparation || ingredient.optional) && (
           <span className="block text-xs text-muted">

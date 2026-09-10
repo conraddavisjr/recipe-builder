@@ -5,11 +5,12 @@ export const metadata = { title: "Inspirations" };
 
 export default function InspirationsPage() {
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8">
+    <main className="mx-auto max-w-[90rem] px-[5%] py-12">
       <PageHeader
-        eyebrow="Out in the world"
-        title="Inspirations"
-        description="Dishes you loved at restaurants. The agent researches each one, works out what was in it, and learns from your corrections."
+        eyebrow="The meals that stay with you"
+        title="A little outside"
+        titleEm="inspiration."
+        description="That unforgettable restaurant dish. The agent researches it, works out what was in it, and learns from your corrections."
       />
       <InspirationList />
     </main>
