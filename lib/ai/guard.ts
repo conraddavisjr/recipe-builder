@@ -17,6 +17,14 @@ const NUTS = /\b(almonds?|walnuts?|pecans?|cashews?|pistachios?|hazelnuts?|peanu
 const PORK = /\b(pork|bacon|ham|prosciutto|pancetta|chorizo|salami|pepperoni|lard)\b/i;
 const BEEF = /\b(beef|steak|brisket|veal|oxtail)\b/i;
 const ALCOHOL = /\b(wine|beer|sake|mirin|vermouth|brandy|bourbon|whisk(e)?y|rum|vodka|tequila|liqueur|marsala|sherry)\b/i;
+// Pregnancy: the obvious offenders by keyword. The model review pass reads
+// the full rule list from the catalog description; this is the cheap net.
+const RAW_EGG = /\b(jammy|soft[- ]boiled|runny|sunny[- ]side|poached eggs?|raw eggs?|homemade mayonnaise|aioli|hollandaise|carbonara|tiramisu|mousse|meringue)\b/i;
+const RAW_PROTEIN = /\b(sushi|sashimi|crudo|ceviche|tartare|carpaccio|poke|rare steak|blue steak|raw oysters?|oysters? on the half shell)\b/i;
+const HIGH_MERCURY = /\b(swordfish|king mackerel|tilefish|shark|marlin|bigeye tuna|orange roughy)\b/i;
+const UNPASTEURIZED = /\b(unpasteuri[sz]ed|raw milk|brie|camembert|gorgonzola|roquefort|blue cheese|queso fresco|feta)\b/i;
+const CURED_MEAT = /\b(prosciutto|salami|pepperoni|deli meats?|cold cuts|p[aâ]t[eé]|liver|jamon|jamón|bresaola)\b/i;
+const SPROUTS = /\b(raw sprouts|alfalfa|bean sprouts?)\b/i;
 
 const RULES: Record<string, { pattern: RegExp; label: string }[]> = {
   vegetarian: [{ pattern: MEAT, label: "meat" }, { pattern: FISH, label: "fish" }, { pattern: SHELLFISH, label: "shellfish" }],
@@ -34,6 +42,15 @@ const RULES: Record<string, { pattern: RegExp; label: string }[]> = {
   no_alcohol: [{ pattern: ALCOHOL, label: "alcohol" }],
   halal: [{ pattern: PORK, label: "pork" }, { pattern: ALCOHOL, label: "alcohol" }],
   kosher: [{ pattern: PORK, label: "pork" }, { pattern: SHELLFISH, label: "shellfish" }],
+  pregnancy_safe: [
+    { pattern: RAW_EGG, label: "raw or undercooked egg" },
+    { pattern: RAW_PROTEIN, label: "raw or undercooked meat or fish" },
+    { pattern: HIGH_MERCURY, label: "high-mercury fish" },
+    { pattern: UNPASTEURIZED, label: "unpasteurized or soft cheese" },
+    { pattern: CURED_MEAT, label: "cured or deli meat" },
+    { pattern: SPROUTS, label: "raw sprouts" },
+    { pattern: ALCOHOL, label: "alcohol" },
+  ],
 };
 
 export interface GuardIssue {
@@ -48,7 +65,8 @@ export function guardRecipes(recipes: GeneratedRecipe[], ctx: RecommendationCont
   const maxMinutes = ctx.settings.max_cook_minutes;
 
   for (const r of recipes) {
-    const ingredientText = r.ingredients.map((i) => `${i.name} ${i.preparation}`).join(" ");
+    const stepText = r.steps.map((st) => `${st.title} ${st.segments.map((sg) => sg.text).join(" ")}`).join(" ");
+    const ingredientText = `${r.ingredients.map((i) => `${i.name} ${i.preparation}`).join(" ")} ${r.title} ${stepText}`;
     for (const key of dietKeys) {
       for (const rule of RULES[key] ?? []) {
         const hit = ingredientText.match(rule.pattern);

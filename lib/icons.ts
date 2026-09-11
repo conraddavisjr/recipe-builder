@@ -1,5 +1,5 @@
 import {
-  Activity, Amphora, Apple, Ban, Bean, Beef, Beer, Blend, Cake, Candy, Cherry, ChefHat,
+  Activity, Amphora, Apple, Baby, Ban, Bean, Beef, Beer, Blend, Cake, Candy, Cherry, ChefHat,
   Citrus, Cloud, Container, CookingPot, Croissant, Drumstick, Droplets, Dumbbell, Egg,
   Fan, Feather, Fish, Flame, Flower, Gauge, Ham, Heater, HeartPulse, Hourglass, Layers,
   Leaf, Lightbulb, Microwave, Milk, Mountain, Nut, Palette, Pizza, Popcorn, Refrigerator,
@@ -24,7 +24,7 @@ import { CUISINES, findCatalogItem } from "@/lib/catalog";
  */
 
 export const ICONS: Record<string, LucideIcon> = {
-  Activity, Amphora, Apple, Ban, Bean, Beef, Beer, Blend, Cake, Candy, Cherry, ChefHat,
+  Activity, Amphora, Apple, Baby, Ban, Bean, Beef, Beer, Blend, Cake, Candy, Cherry, ChefHat,
   Citrus, Cloud, Container, CookingPot, Croissant, Drumstick, Droplets, Dumbbell, Egg,
   Fan, Feather, Fish, Flame, Flower, Gauge, Ham, Heater, HeartPulse, Hourglass, Layers,
   Leaf, Lightbulb, Microwave, Milk, Mountain, Nut, Palette, Pizza, Popcorn, Refrigerator,

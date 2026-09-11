@@ -121,6 +121,14 @@ export const DIET_ABSOLUTES: CatalogItem[] = [
   { key: "no_alcohol", label: "No alcohol", description: "No wine, beer or spirits in cooking.", icon: "Ban", hue: 280 },
   { key: "halal", label: "Halal", description: "Halal ingredients and methods only.", icon: "ShieldCheck", hue: 140 },
   { key: "kosher", label: "Kosher", description: "Kosher ingredients and pairings only.", icon: "ShieldCheck", hue: 230 },
+  {
+    key: "pregnancy_safe",
+    label: "Pregnancy safe",
+    description:
+      "Every recipe must be safe in pregnancy: no raw or undercooked eggs (no jammy, soft-boiled, runny or poached eggs, no homemade mayonnaise, aioli or hollandaise); no raw or undercooked meat, poultry or fish (no sushi, sashimi, crudo, ceviche, tartare, carpaccio, rare steak); fish cooked through and only low-mercury species (no swordfish, king mackerel, tilefish, shark, marlin or bigeye tuna); no unpasteurized milk, juice or cheese and no soft or blue cheeses unless cooked until bubbling; no cured or deli meats unless cooked through; no pâté or liver; no raw sprouts; no alcohol in cooking; limited caffeine.",
+    icon: "Baby",
+    hue: 330,
+  },
 ];
 
 export const COOKWARE: CatalogItem[] = [
