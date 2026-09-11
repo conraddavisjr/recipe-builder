@@ -25,6 +25,8 @@ interface ShellState {
   closeDrawer: () => void;
   settingsOpen: boolean;
   setSettingsOpen: (open: boolean) => void;
+  /** The recipe currently on screen, so the nav chat bubble opens the drawer about it. */
+  setContextRecipe: (context: DrawerContext | null) => void;
 }
 
 const Ctx = createContext<ShellState | null>(null);
@@ -33,15 +35,19 @@ export function ShellProvider({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [drawer, setDrawer] = useState<{ open: boolean; context: DrawerContext }>({ open: false, context: {} });
+  const [contextRecipe, setContextRecipe] = useState<DrawerContext | null>(null);
 
-  const openDrawer = useCallback((context: DrawerContext = {}) => {
-    setMenuOpen(false);
-    setDrawer({ open: true, context });
-  }, []);
+  const openDrawer = useCallback(
+    (context?: DrawerContext) => {
+      setMenuOpen(false);
+      setDrawer({ open: true, context: context ?? contextRecipe ?? {} });
+    },
+    [contextRecipe],
+  );
   const closeDrawer = useCallback(() => setDrawer((d) => ({ ...d, open: false })), []);
 
   const value = useMemo<ShellState>(
-    () => ({ menuOpen, setMenuOpen, drawer, openDrawer, closeDrawer, settingsOpen, setSettingsOpen }),
+    () => ({ menuOpen, setMenuOpen, drawer, openDrawer, closeDrawer, settingsOpen, setSettingsOpen, setContextRecipe }),
     [menuOpen, drawer, openDrawer, closeDrawer, settingsOpen],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

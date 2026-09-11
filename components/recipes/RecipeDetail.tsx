@@ -3,7 +3,7 @@
 import { createElement, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowUpRight, ChevronDown, Heart, LoaderCircle, MessageCircle, Minus, Plus, Sparkles, Trash } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, ChevronDown, Heart, LoaderCircle, Minus, Plus, Sparkles, Trash } from "lucide-react";
 import type { IngredientArt, Recipe, RecipeCard as RecipeCardData } from "@/lib/types";
 import { api } from "@/lib/client/api";
 import { findCatalogItem } from "@/lib/catalog";
@@ -29,7 +29,7 @@ interface Payload {
 const TAGS_KEY = "palate.stepTags";
 
 export function RecipeDetail({ id }: { id: string }) {
-  const { openDrawer } = useShell();
+  const { openDrawer, setContextRecipe } = useShell();
   const router = useRouter();
   const [data, setData] = useState<Payload | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -95,6 +95,14 @@ export function RecipeDetail({ id }: { id: string }) {
     };
   }, [id]);
 
+  // The nav chat bubble opens the drawer about this recipe while it is on screen.
+  const contextTitle = data?.recipe.title;
+  useEffect(() => {
+    if (!contextTitle) return;
+    setContextRecipe({ recipeId: id, recipeTitle: contextTitle });
+    return () => setContextRecipe(null);
+  }, [id, contextTitle, setContextRecipe]);
+
   const pendingImages = data?.recipe.images.some((i) => i.status === "pending") ?? false;
   const pendingArt = Object.values(data?.ingredient_art ?? {}).some((a) => a.status === "pending");
   useEffect(() => {
@@ -142,24 +150,23 @@ export function RecipeDetail({ id }: { id: string }) {
   return (
     <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_300px]">
       <article className="min-w-0">
-        <Link href="/" className="mb-8 inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink"><ArrowLeft size={14} /> Back to recipes</Link>
-
-        {/* 1. Title block: eyebrow, title, summary, actions */}
-        <header className="flex flex-wrap items-start justify-between gap-6">
-          <div className="min-w-0 flex-1">
-            <p className="eyebrow">{recipe.cuisine} / {recipe.dish_type}</p>
-            <h1 className="display mt-3 text-4xl leading-[1.05] sm:text-5xl">{recipe.title}</h1>
-            <p className="intro mt-5 max-w-2xl">{recipe.summary_poetic}</p>
-          </div>
-          <div className="flex items-center gap-2 pt-2">
-            <button type="button" className="btn btn-icon" aria-pressed={recipe.favorite} aria-label={recipe.favorite ? "Remove from favorites" : "Add to favorites"} onClick={() => patch({ favorite: !recipe.favorite })}>
+        {/* Sticky action row under the main nav: back on the left, actions on
+            the right, so the title below gets the full width on a phone. */}
+        <div className="sticky top-[4.5rem] z-20 -mx-1 mb-6 flex items-center justify-between gap-2 border-b border-line bg-bg/90 px-1 py-2 backdrop-blur">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink"><ArrowLeft size={14} /> Back to recipes</Link>
+          <div className="flex items-center gap-1.5">
+            <AddToGroup recipeId={recipe.id} initialGroupIds={data?.group_ids ?? []} />
+            <button type="button" className="btn btn-icon" aria-pressed={recipe.favorite} aria-label={recipe.favorite ? "Remove from favorites" : "Add to favorites"} title={recipe.favorite ? "Favorited" : "Favorite"} onClick={() => patch({ favorite: !recipe.favorite })}>
               <Heart size={17} fill={recipe.favorite ? "currentColor" : "none"} style={{ color: recipe.favorite ? "var(--accent)" : undefined }} />
             </button>
-            <AddToGroup recipeId={recipe.id} initialGroupIds={data?.group_ids ?? []} />
-            <button type="button" className="btn" onClick={() => openDrawer({ recipeId: recipe.id, recipeTitle: recipe.title })}>
-              <MessageCircle size={15} /> Tell the agent
-            </button>
           </div>
+        </div>
+
+        {/* 1. Title block: eyebrow, title, summary */}
+        <header>
+          <p className="eyebrow">{recipe.cuisine} / {recipe.dish_type}</p>
+          <h1 className="display mt-3 text-[2rem] leading-[1.08] sm:text-4xl lg:text-5xl">{recipe.title}</h1>
+          <p className="intro mt-5 max-w-2xl">{recipe.summary_poetic}</p>
         </header>
 
         {/* 2. Photo */}

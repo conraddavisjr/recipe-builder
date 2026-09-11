@@ -63,8 +63,10 @@ export function AddToGroup({ recipeId, initialGroupIds }: { recipeId: string; in
 
   return (
     <div className="relative" ref={root}>
-      <button type="button" className="btn" data-active={member.size > 0} aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen((o) => !o)}>
-        <FolderPlus size={15} /> {member.size > 0 ? `In ${member.size} group${member.size === 1 ? "" : "s"}` : "Add to group"}
+      <button type="button" className="btn btn-sm" data-active={member.size > 0} aria-expanded={open} aria-haspopup="dialog" aria-label="Add to group" onClick={() => setOpen((o) => !o)}>
+        <FolderPlus size={15} />
+        <span className="hidden sm:inline">{member.size > 0 ? `In ${member.size} group${member.size === 1 ? "" : "s"}` : "Add to group"}</span>
+        {member.size > 0 && <span className="sm:hidden">{member.size}</span>}
       </button>
       {open && (
         <div className="card absolute right-0 z-20 mt-2 w-72 p-2 shadow-[var(--shadow-dialog)]" role="dialog" aria-label="Add to group">
