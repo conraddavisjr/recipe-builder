@@ -9,6 +9,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { SegmentKind } from "@/lib/types";
+import { createElement } from "react";
+import type { LucideProps } from "lucide-react";
+import { Globe, Eye, HeartPulse as HeartPulseIcon, Utensils as UtensilsIcon } from "lucide-react";
+import { CUISINES, findCatalogItem } from "@/lib/catalog";
 
 /**
  * Iconography taxonomy.
@@ -125,16 +129,12 @@ export function ingredientIcon(key: string): LucideIcon {
 
 export { ChefHat, Utensils, UtensilsCrossed, Wind, Wine, Vegan, Feather, Flower, Cloud, Hourglass, Palette, Sandwich, Croissant, Cake, Beer, Dumbbell, HeartPulse, Activity, Ban, ShieldCheck, Popcorn, Zap, Sun, Snowflake, Nut, Torus, Amphora, Mountain };
 
-import { createElement } from "react";
-import type { LucideProps } from "lucide-react";
 
 /** Render a catalog icon by name without creating a component during render. */
 export function CatalogIcon({ name, ...props }: { name: string } & LucideProps) {
   return createElement(iconByName(name), props);
 }
 
-import { Globe, Eye, HeartPulse as HeartPulseIcon, Utensils as UtensilsIcon } from "lucide-react";
-import { CUISINES, findCatalogItem } from "@/lib/catalog";
 
 /** Glyph for each library filter group. */
 export const FILTER_GROUP_ICONS: Record<"cuisine" | "dish_type" | "health_profile" | "presentation", LucideIcon> = {

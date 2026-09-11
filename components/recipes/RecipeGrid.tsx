@@ -126,7 +126,7 @@ export function RecipeGrid() {
                 aria-haspopup="listbox"
                 onClick={() => setOpenGroup(open ? null : g.key)}
               >
-                {createElement(FILTER_GROUP_ICONS[g.key], { size: 14, className: value ? "opacity-90" : "text-muted" })}
+                {createElement(FILTER_GROUP_ICONS[g.key] ?? Search, { size: 14, className: value ? "opacity-90" : "text-muted" })}
                 {value ? (g.labelFor ? g.labelFor(value) : value) : g.label}
                 <ChevronDown size={14} className="opacity-70" />
               </button>
