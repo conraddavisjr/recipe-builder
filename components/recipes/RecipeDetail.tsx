@@ -13,6 +13,9 @@ import { IngredientRow } from "./IngredientRow";
 import { SegmentLegend, StepFacts, StepProse, type SegmentMode } from "./Segment";
 import { SimilarModal } from "./SimilarModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { AddToGroup } from "@/components/groups/AddToGroup";
+import { useChecklist } from "@/components/ui/Checklist";
+import { addedLabel } from "@/lib/client/format";
 
 type Similar = RecipeCardData & { score: number };
 
@@ -20,6 +23,7 @@ interface Payload {
   recipe: Recipe;
   ingredient_art: Record<string, IngredientArt>;
   similar: Similar[];
+  group_ids: string[];
 }
 
 const TAGS_KEY = "palate.stepTags";
@@ -38,6 +42,7 @@ export function RecipeDetail({ id }: { id: string }) {
   const [feedbackDraft, setFeedbackDraft] = useState("");
   const [savingFeedback, setSavingFeedback] = useState(false);
   const [mode, setMode] = useState<SegmentMode>("calm");
+  const checklist = useChecklist(`palate.recipe.${id}`);
   const [activeImage, setActiveImage] = useState(0);
 
   // "Show tags" preference is per browser and survives reloads.
@@ -150,6 +155,7 @@ export function RecipeDetail({ id }: { id: string }) {
             <button type="button" className="btn btn-icon" aria-pressed={recipe.favorite} aria-label={recipe.favorite ? "Remove from favorites" : "Add to favorites"} onClick={() => patch({ favorite: !recipe.favorite })}>
               <Heart size={17} fill={recipe.favorite ? "currentColor" : "none"} style={{ color: recipe.favorite ? "var(--accent)" : undefined }} />
             </button>
+            <AddToGroup recipeId={recipe.id} initialGroupIds={data?.group_ids ?? []} />
             <button type="button" className="btn" onClick={() => openDrawer({ recipeId: recipe.id, recipeTitle: recipe.title })}>
               <MessageCircle size={15} /> Tell the agent
             </button>
@@ -192,6 +198,7 @@ export function RecipeDetail({ id }: { id: string }) {
           <Stat label="Effort" value={recipe.difficulty} />
           <Stat label="Profile" value={health} />
           <Stat label="Look" value={presentation} />
+          <Stat label="Added" value={addedLabel(recipe.created_at)} />
         </dl>
 
         {/* 4. Why this recipe */}
@@ -207,7 +214,10 @@ export function RecipeDetail({ id }: { id: string }) {
         <section className="section-card mt-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="display text-2xl">Ingredients</h2>
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-3 text-sm">
+              {checklist.checked.size > 0 && (
+                <button type="button" className="btn btn-ghost btn-sm" onClick={checklist.clear}>Reset checklist</button>
+              )}
               <span className="text-muted">Servings</span>
               <button type="button" className="btn btn-icon btn-sm" aria-label="Fewer servings" onClick={() => setScale((s) => Math.max(0.25, s - 0.5 / recipe.servings))}><Minus size={13} /></button>
               <span className="min-w-[1.5rem] text-center font-semibold tabular-nums">{servings}</span>
@@ -216,7 +226,14 @@ export function RecipeDetail({ id }: { id: string }) {
           </div>
           <ul className="mt-4 grid gap-x-8 sm:grid-cols-2">
             {recipe.ingredients.map((ing, i) => (
-              <IngredientRow key={`${ing.ingredient_key}-${i}`} ingredient={ing} art={data?.ingredient_art[ing.ingredient_key]} scale={scale} />
+              <IngredientRow
+                key={`${ing.ingredient_key}-${i}`}
+                ingredient={ing}
+                art={data?.ingredient_art[ing.ingredient_key]}
+                scale={scale}
+                checked={checklist.checked.has(`${ing.ingredient_key}-${i}`)}
+                onToggle={() => checklist.toggle(`${ing.ingredient_key}-${i}`)}
+              />
             ))}
           </ul>
           {recipe.equipment.length > 0 && (

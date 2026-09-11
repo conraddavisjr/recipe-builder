@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:backup": "bash scripts/backup.sh"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",

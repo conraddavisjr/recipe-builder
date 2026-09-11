@@ -12,9 +12,10 @@ export async function GET(_request: Request, ctx: Ctx) {
     const { id } = await ctx.params;
     const recipe = await db.getRecipe(id);
     if (!recipe) return apiError("Recipe not found", 404);
-    const [artMap, library] = await Promise.all([
+    const [artMap, library, group_ids] = await Promise.all([
       db.getIngredientArt(recipe.ingredients.map((i) => i.ingredient_key)),
       db.listRecipesForSimilarity(),
+      db.groupIdsForRecipe(id),
     ]);
     const neighbors = findSimilar(recipe, library, { limit: 6 });
     const similar = await db.getRecipeCardsByIds(neighbors.map((n) => n.recipe.id));
@@ -22,6 +23,7 @@ export async function GET(_request: Request, ctx: Ctx) {
       recipe,
       ingredient_art: Object.fromEntries(artMap),
       similar: similar.map((card) => ({ ...card, score: neighbors.find((n) => n.recipe.id === card.id)?.score ?? 0 })),
+      group_ids,
     });
   });
 }

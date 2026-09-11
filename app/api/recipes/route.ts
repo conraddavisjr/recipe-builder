@@ -4,13 +4,13 @@ import * as db from "@/lib/db";
 
 /**
  * GET /api/recipes?q=&cuisine=&dish_type=&health_profile=&presentation=&source=&favorites=1&sort=
- * -> { recipes, active_runs }
+ * -> { recipes, active_runs, drafts } (drafts = generator candidates not yet kept)
  */
 export async function GET(request: Request) {
   return handle(async () => {
     const p = new URL(request.url).searchParams;
     const pick = (k: string) => p.get(k)?.trim() || undefined;
-    const [recipes, active_runs] = await Promise.all([
+    const [recipes, active_runs, drafts] = await Promise.all([
       db.listRecipeCards({
         q: pick("q"),
         cuisine: pick("cuisine"),
@@ -22,7 +22,8 @@ export async function GET(request: Request) {
         sort: (pick("sort") as "newest" | "oldest" | "title" | "quickest" | undefined) ?? "newest",
       }),
       db.listActiveRuns(),
+      db.countCandidates(),
     ]);
-    return NextResponse.json({ recipes, active_runs });
+    return NextResponse.json({ recipes, active_runs, drafts });
   });
 }
