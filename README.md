@@ -52,6 +52,11 @@ Correct anything it got wrong, re-analyze with your corrections as ground truth,
   <img src="docs/screenshots/inspiration.jpg" alt="Inspiration detail: the agent's ingredient list for a khao soi with provenance glyphs, and a corrections panel on the right" width="100%">
 </p>
 
+**Groups, with one shopping list.**
+Gather recipes for an occasion ("Thanksgiving", "a week of lunches") from any recipe's "Add to group" button.
+Each group consolidates the ingredients of its recipes into a single checklist, combining quantities when the ingredient and unit match and naming which recipes need each line.
+Every recipe also has its own ingredient checklist for the shop.
+
 **An agent you can talk to.**
 A drawer slides in from any recipe card or detail page.
 Tell the agent an absolute truth ("I am allergic to walnuts") that it must never break, or a preference ("lately I want brothy dinners") that cascades, with newer preferences winning over older ones.
@@ -132,9 +137,13 @@ Interactive tasks (generation, research) are claimed ahead of bulk rendering so 
 
 ### Data
 
-Postgres tables: `settings`, `profile_selections`, `instructions`, `inspirations`, `runs`, `recipes`, `recipe_images`, `ingredient_art`, `tasks`.
+Postgres tables: `settings`, `profile_selections`, `instructions`, `inspirations`, `runs`, `recipes`, `recipe_images`, `ingredient_art`, `tasks`, `groups`, `group_recipes`.
 Storage buckets: `recipe-images` and `ingredient-art` (public read), `inspiration-photos` (private, signed URLs; the browser uploads straight to storage).
 Single personal workspace: every table carries `user_id` so per-user auth later is a data migration, and the migration documents the RLS steps.
+
+Locally the database and storage live in Docker volumes (`supabase_db_<project>`, `supabase_storage_<project>`), which survive `supabase stop` and reboots; only `supabase db reset` wipes them.
+`npm run db:backup` writes a SQL dump to `backups/` (git-ignored); the script header explains how to archive the storage volume too.
+Pointing `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` at a hosted Supabase project moves everything off the laptop with no code change.
 
 ## Design
 
