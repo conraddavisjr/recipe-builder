@@ -34,6 +34,11 @@ describe("guardRecipes pregnancy_safe", () => {
     const issues = guardRecipes([sword, ham, ok], ctx(["pregnancy_safe"]));
     expect(issues.map((i) => i.recipe)).toEqual(["Charcoal swordfish", "Board"]);
   });
+  it("does not flag an egg-free mousse, but does flag a mousse that contains egg", () => {
+    const eggFree = recipe({ title: "Avocado cacao mousse", ingredients: [{ ingredient_key: "avocado", name: "Avocado", quantity: 2, unit: "whole", preparation: "", optional: false }] });
+    const eggy = recipe({ title: "Chocolate mousse", ingredients: [{ ingredient_key: "egg", name: "Egg whites", quantity: 3, unit: "whole", preparation: "", optional: false }] });
+    expect(guardRecipes([eggFree, eggy], ctx(["pregnancy_safe"])).map((i) => i.recipe)).toEqual(["Chocolate mousse"]);
+  });
   it("does nothing when the absolute is not selected", () => {
     const r = recipe({ ingredients: [{ ingredient_key: "swordfish", name: "Swordfish", quantity: 1, unit: "whole", preparation: "", optional: false }] });
     expect(guardRecipes([r], ctx([]))).toEqual([]);

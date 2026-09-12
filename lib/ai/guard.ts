@@ -19,14 +19,19 @@ const BEEF = /\b(beef|steak|brisket|veal|oxtail)\b/i;
 const ALCOHOL = /\b(wine|beer|sake|mirin|vermouth|brandy|bourbon|whisk(e)?y|rum|vodka|tequila|liqueur|marsala|sherry)\b/i;
 // Pregnancy: the obvious offenders by keyword. The model review pass reads
 // the full rule list from the catalog description; this is the cheap net.
-const RAW_EGG = /\b(jammy|soft[- ]boiled|runny|sunny[- ]side|poached eggs?|raw eggs?|homemade mayonnaise|aioli|hollandaise|carbonara|tiramisu|mousse|meringue)\b/i;
+// Techniques that always mean an undercooked egg, and dish names that only
+// matter when egg is actually among the ingredients (an avocado mousse or a
+// meringue-free tiramisu is fine).
+const RAW_EGG_TECHNIQUE = /\b(jammy|soft[- ]boiled|runny|sunny[- ]side|poached eggs?|raw eggs?|homemade mayonnaise|aioli|hollandaise)\b/i;
+const RAW_EGG_DISH = /\b(carbonara|tiramisu|mousse|meringue|sabayon|zabaglione|custard)\b/i;
+const EGG_INGREDIENT = /\b(eggs?|egg yolks?|egg whites?)\b/i;
 const RAW_PROTEIN = /\b(sushi|sashimi|crudo|ceviche|tartare|carpaccio|poke|rare steak|blue steak|raw oysters?|oysters? on the half shell)\b/i;
 const HIGH_MERCURY = /\b(swordfish|king mackerel|tilefish|shark|marlin|bigeye tuna|orange roughy)\b/i;
 const UNPASTEURIZED = /\b(unpasteuri[sz]ed|raw milk|brie|camembert|gorgonzola|roquefort|blue cheese|queso fresco|feta)\b/i;
 const CURED_MEAT = /\b(prosciutto|salami|pepperoni|deli meats?|cold cuts|p[aâ]t[eé]|liver|jamon|jamón|bresaola)\b/i;
 const SPROUTS = /\b(raw sprouts|alfalfa|bean sprouts?)\b/i;
 
-const RULES: Record<string, { pattern: RegExp; label: string }[]> = {
+const RULES: Record<string, { pattern: RegExp; label: string; requires?: RegExp }[]> = {
   vegetarian: [{ pattern: MEAT, label: "meat" }, { pattern: FISH, label: "fish" }, { pattern: SHELLFISH, label: "shellfish" }],
   vegan: [
     { pattern: MEAT, label: "meat" }, { pattern: FISH, label: "fish" }, { pattern: SHELLFISH, label: "shellfish" },
@@ -43,7 +48,8 @@ const RULES: Record<string, { pattern: RegExp; label: string }[]> = {
   halal: [{ pattern: PORK, label: "pork" }, { pattern: ALCOHOL, label: "alcohol" }],
   kosher: [{ pattern: PORK, label: "pork" }, { pattern: SHELLFISH, label: "shellfish" }],
   pregnancy_safe: [
-    { pattern: RAW_EGG, label: "raw or undercooked egg" },
+    { pattern: RAW_EGG_TECHNIQUE, label: "raw or undercooked egg" },
+    { pattern: RAW_EGG_DISH, label: "raw or undercooked egg", requires: EGG_INGREDIENT },
     { pattern: RAW_PROTEIN, label: "raw or undercooked meat or fish" },
     { pattern: HIGH_MERCURY, label: "high-mercury fish" },
     { pattern: UNPASTEURIZED, label: "unpasteurized or soft cheese" },
@@ -66,9 +72,12 @@ export function guardRecipes(recipes: GeneratedRecipe[], ctx: RecommendationCont
 
   for (const r of recipes) {
     const stepText = r.steps.map((st) => `${st.title} ${st.segments.map((sg) => sg.text).join(" ")}`).join(" ");
-    const ingredientText = `${r.ingredients.map((i) => `${i.name} ${i.preparation}`).join(" ")} ${r.title} ${stepText}`;
+    const ingredientsOnly = r.ingredients.map((i) => `${i.name} ${i.preparation}`).join(" ");
+    const ingredientText = `${ingredientsOnly} ${r.title} ${stepText}`;
     for (const key of dietKeys) {
       for (const rule of RULES[key] ?? []) {
+        // A "requires" rule only applies when the trigger ingredient is really present.
+        if (rule.requires && !rule.requires.test(ingredientsOnly)) continue;
         const hit = ingredientText.match(rule.pattern);
         if (hit) issues.push({ recipe: r.title, issue: `contains ${rule.label} ("${hit[0]}") despite ${key}` });
       }
