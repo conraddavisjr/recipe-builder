@@ -108,6 +108,15 @@ npm run build
 Tests cover the pure logic (context assembly and the cascade rule, similarity scoring, scheduling, the step facts strip).
 UI behavior is verified in the browser.
 
+## Deploy
+
+The app runs on Vercel against a hosted Supabase project.
+`npx supabase link --project-ref <ref>` then `npx supabase db push` applies the migrations (tables, queue function, buckets, and the `pg_cron` heartbeat that pokes the worker every minute).
+Set these in the Vercel project: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `APP_PASSWORD`, `SESSION_SECRET`, `WORKER_SECRET`, `CRON_SECRET`.
+After the first deploy, store the site URL and `WORKER_SECRET` in Supabase Vault as `palate_worker_url` and `palate_worker_secret` so the heartbeat can reach the worker.
+`vercel.json` schedules `/api/cron/recommend` daily; the app decides whether a run is due from your settings.
+`scripts/copy-storage.mjs` copies the local storage buckets to the hosted project when moving an existing library.
+
 ## Architecture
 
 ```
