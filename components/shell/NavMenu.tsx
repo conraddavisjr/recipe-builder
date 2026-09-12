@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, Camera, Clock, FolderOpen, MessageSquareText, Settings, Sparkles, UserRound, X } from "lucide-react";
+import { BookOpen, Camera, Clock, FolderOpen, LogOut, MessageSquareText, Settings, Sparkles, UserRound, X } from "lucide-react";
 import { APP_NAME } from "@/lib/config";
 import { useShell } from "./ShellProvider";
 
@@ -70,7 +70,17 @@ export function NavMenu() {
                 );
               })}
             </ul>
-            <div className="px-6 py-5">
+            <div className="space-y-2 px-6 py-5">
+              <button
+                type="button"
+                className="btn btn-ghost w-full text-muted"
+                onClick={async () => {
+                  await fetch("/api/auth/logout", { method: "POST" });
+                  window.location.href = "/login";
+                }}
+              >
+                <LogOut size={15} /> Sign out
+              </button>
               <button
                 type="button"
                 className="btn w-full"

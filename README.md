@@ -77,7 +77,8 @@ The models behind it: Claude (`claude-opus-5`) for recipe composition, web resea
 
 ## Run it locally
 
-Requires Node 20.9+ (`.nvmrc` pins 20.20.2), Docker (for the local Supabase stack), an Anthropic API key, and an OpenAI API key.
+Requires Node 20.9+ (`.nvmrc` pins 20.20.2), a Supabase project (hosted, or Docker for the local stack), an Anthropic API key, and an OpenAI API key.
+Leave `ALLOWED_EMAILS` empty locally to skip sign-in.
 
 ```sh
 npm ci
@@ -112,7 +113,8 @@ UI behavior is verified in the browser.
 
 The app runs on Vercel against a hosted Supabase project.
 `npx supabase link --project-ref <ref>` then `npx supabase db push` applies the migrations (tables, queue function, buckets, and the `pg_cron` heartbeat that pokes the worker every minute).
-Set these in the Vercel project: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `APP_PASSWORD`, `SESSION_SECRET`, `WORKER_SECRET`, `CRON_SECRET`.
+Set these in the Vercel project: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `ALLOWED_EMAILS`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `WORKER_SECRET`, `CRON_SECRET`.
+Sign-in uses Google through Supabase Auth: create an OAuth client in Google Cloud Console with the redirect URI `https://<project-ref>.supabase.co/auth/v1/callback`, put its id and secret in `.env.local` as `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, and run `npx supabase config push` to enable the provider on the hosted project.
 After the first deploy, store the site URL and `WORKER_SECRET` in Supabase Vault as `palate_worker_url` and `palate_worker_secret` so the heartbeat can reach the worker.
 `vercel.json` schedules `/api/cron/recommend` daily; the app decides whether a run is due from your settings.
 `scripts/copy-storage.mjs` copies the local storage buckets to the hosted project when moving an existing library.
@@ -135,7 +137,7 @@ lib/jobs/*                Postgres task queue drained by POST /api/worker in bou
 - `lib/schemas.ts` defines every shape that crosses a boundary (model output, API input, jsonb columns); `lib/types.ts` infers types from it.
 - `lib/catalog/` is the preference vocabulary shown by the wizard and sent to the model.
 - `lib/icons.ts` is the iconography taxonomy: step segments, equipment, ingredients, filter groups and options.
-- `proxy.ts` is a single-owner password gate (`APP_PASSWORD`); the worker and cron endpoints use bearer secrets instead.
+- `proxy.ts` is the sign-in gate: Google sign-in through Supabase Auth, with a manually approved email allowlist (`ALLOWED_EMAILS`); the worker, cron and import endpoints use bearer secrets instead.
 
 ### Background work
 

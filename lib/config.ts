@@ -20,8 +20,14 @@ export const APP_NAME = "Palate";
 export const LOCAL_USER_ID = "conrad";
 
 export const config = {
-  appPassword: optional("APP_PASSWORD"),
-  sessionSecret: optional("SESSION_SECRET"),
+  /** Public values used by the browser to start Google sign-in. */
+  supabasePublicUrl: optional("NEXT_PUBLIC_SUPABASE_URL"),
+  supabaseAnonKey: optional("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+  /** Emails allowed through the sign-in gate; empty disables the gate (local dev only). */
+  allowedEmails: optional("ALLOWED_EMAILS")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean),
 
   supabaseUrl: optional("SUPABASE_URL"),
   supabaseServiceRoleKey: optional("SUPABASE_SERVICE_ROLE_KEY"),
@@ -49,5 +55,5 @@ export const config = {
   workerSliceMs: 240_000,
 } as const;
 
-/** True when the app is allowed to run without the password gate (local dev only). */
-export const isGateDisabled = !config.appPassword;
+/** True when the app runs without the sign-in gate (local dev with no allowlist). */
+export const isGateDisabled = config.allowedEmails.length === 0;

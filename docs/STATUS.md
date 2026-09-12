@@ -82,6 +82,12 @@ Applied:
 - Cards and the stats strip show when a recipe was added; library sorts newest first by default; the library notes waiting drafts; a top-bar pill shows any live run.
 - `npm run db:backup` dumps the local database.
 
+## Deployed and on Google sign-in (2026-09-12)
+
+- Hosted Supabase project "Recipe Builder" (`nbkbvxwmmaruuujeaqmz`, us-east-1) with the local library carried over; Vercel production at https://recipe-builder-theta.vercel.app; pg_cron heartbeat and daily Vercel cron in place. Local dev points at the hosted database too.
+- The password gate is replaced by Google sign-in through Supabase Auth with an email allowlist (`ALLOWED_EMAILS`). `proxy.ts` verifies the session and the allowlist; `/auth/callback` exchanges the OAuth code; unapproved accounts are signed out with a message. The Google OAuth client must be created in Google Cloud Console and pushed with `supabase config push`.
+- `POST /api/runs/import` lets a batch authored outside the model call enter the same pipeline (used while the Anthropic balance is empty).
+
 ## Known limitations
 
 - Image rendering is sequential per worker slice; a 5-recipe run with a cold ingredient-art cache takes 10-15 minutes locally. Concurrent slices (heartbeat plus self-kick) already overlap safely.

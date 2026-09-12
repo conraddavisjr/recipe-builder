@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
-import { SESSION_COOKIE } from "@/lib/session";
+import { NextResponse, type NextRequest } from "next/server";
+import { createAuthClient } from "@/lib/supabase/auth";
 
-/** POST /api/auth/logout -> clears the session cookie. */
-export async function POST() {
-  const res = NextResponse.json({ ok: true });
-  res.cookies.set(SESSION_COOKIE, "", { path: "/", expires: new Date(0) });
-  return res;
+/** POST /api/auth/logout -> ends the Supabase session and clears its cookies. */
+export async function POST(request: NextRequest) {
+  const response = NextResponse.json({ ok: true });
+  const supabase = createAuthClient(request, response);
+  await supabase.auth.signOut();
+  return response;
 }
