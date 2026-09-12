@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { BookOpen, Camera, Clock, FolderOpen, LogOut, MessageSquareText, Settings, Sparkles, UserRound, X } from "lucide-react";
 import { APP_NAME } from "@/lib/config";
@@ -20,6 +20,7 @@ const LINKS = [
 export function NavMenu() {
   const { menuOpen, setMenuOpen, setSettingsOpen } = useShell();
   const pathname = usePathname();
+  const router = useRouter();
   return (
     <AnimatePresence>
       {menuOpen && (
@@ -76,7 +77,9 @@ export function NavMenu() {
                 className="btn btn-ghost w-full text-muted"
                 onClick={async () => {
                   await fetch("/api/auth/logout", { method: "POST" });
-                  window.location.href = "/login";
+                  setMenuOpen(false);
+                  router.push("/login");
+                  router.refresh();
                 }}
               >
                 <LogOut size={15} /> Sign out
