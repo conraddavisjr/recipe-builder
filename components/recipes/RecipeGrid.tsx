@@ -31,6 +31,7 @@ export function RecipeGrid() {
   const { setSettingsOpen } = useShell();
   const [recipes, setRecipes] = useState<RecipeCardData[] | null>(null);
   const [activeRuns, setActiveRuns] = useState<Run[]>([]);
+  const [drafts, setDrafts] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [filters, setFilters] = useState<Partial<Record<FilterKey, string>>>({});
@@ -48,9 +49,10 @@ export function RecipeGrid() {
     if (favorites) params.set("favorites", "1");
     params.set("sort", sort);
     try {
-      const data = await api<{ recipes: RecipeCardData[]; active_runs: Run[] }>(`/api/recipes?${params}`);
+      const data = await api<{ recipes: RecipeCardData[]; active_runs: Run[]; drafts: number }>(`/api/recipes?${params}`);
       setRecipes(data.recipes);
       setActiveRuns(data.active_runs);
+      setDrafts(data.drafts);
       setError(null);
     } catch (e) {
       setError((e as Error).message);
@@ -186,6 +188,13 @@ export function RecipeGrid() {
             {cooking.status === "rendering" && `Photographing dishes and illustrating ingredients (${cooking.progress.done}/${cooking.progress.total})...`}
           </span>
           <Link href="/history" className="ml-1 font-semibold text-ink underline-offset-2 hover:underline">Details</Link>
+        </p>
+      )}
+
+      {drafts > 0 && !cooking && (
+        <p className="mb-4 text-sm text-muted">
+          <Sparkles size={14} className="mr-1 inline" /> {drafts} draft{drafts === 1 ? "" : "s"} waiting in the{" "}
+          <Link href="/generator" className="font-medium text-ink underline-offset-2 hover:underline">generator</Link>. Drafts join the library only when you keep them.
         </p>
       )}
 

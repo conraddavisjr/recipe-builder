@@ -74,6 +74,14 @@ Applied:
 - Wizard: horizontal stepper with counts, neutral inactive tiles, compact tiles for avoid and cookware, one-line descriptions that expand on hover.
 - Settings uses headings and dividers; instruction controls reveal on hover; inspiration provenance is a glyph with bar and label on hover.
 
+## Groups, checklists, safe keep flow (2026-09-11)
+
+- Generator "Keep" now writes `status=saved` immediately (`POST /api/recipes/[id]/keep`); unkept drafts persist; discarding is explicit and confirmed (`POST /api/runs/[id]/discard`, refuses saved recipes). The old keep route that deleted unselected drafts is gone. Three recipes from run `dc787a36` were lost to it before the fix; a recovery run recreated them by title.
+- Groups (`groups`, `group_recipes`): create from `/groups` or the recipe page popover; group page shows recipes and a consolidated shopping list (`lib/groups.ts`, tested) with checkboxes.
+- Ingredient checklist on recipes; both checklists persist per browser in localStorage.
+- Cards and the stats strip show when a recipe was added; library sorts newest first by default; the library notes waiting drafts; a top-bar pill shows any live run.
+- `npm run db:backup` dumps the local database.
+
 ## Known limitations
 
 - Image rendering is sequential per worker slice; a 5-recipe run with a cold ingredient-art cache takes 10-15 minutes locally. Concurrent slices (heartbeat plus self-kick) already overlap safely.

@@ -5,9 +5,11 @@ import { usePathname } from "next/navigation";
 import { Menu, MessageCircle, Settings } from "lucide-react";
 import { APP_NAME } from "@/lib/config";
 import { useShell } from "./ShellProvider";
+import { CookingIndicator } from "./CookingIndicator";
 
 const LINKS = [
   { href: "/", label: "Recipes" },
+  { href: "/groups", label: "Groups" },
   { href: "/inspirations", label: "Inspirations" },
   { href: "/generator", label: "Generator" },
   { href: "/profile", label: "Taste profile" },
@@ -36,7 +38,8 @@ export function TopBar() {
             );
           })}
         </nav>
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-2">
+          <CookingIndicator />
           <button type="button" className="btn btn-sm hidden sm:inline-flex" onClick={() => openDrawer()} title="Give the agent instructions">
             <MessageCircle size={14} /> Talk to the agent
           </button>

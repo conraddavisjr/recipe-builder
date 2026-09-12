@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Heart, MessageCircle, Star, Timer } from "lucide-react";
 import type { RecipeCard as RecipeCardData } from "@/lib/types";
 import { useShell } from "@/components/shell/ShellProvider";
+import { addedLabel } from "@/lib/client/format";
 
 /**
  * Library card. Image first, one quiet eyebrow (cuisine and dish type), a
@@ -48,12 +49,13 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
           <span className="inline-flex items-center gap-1"><Timer size={13} /> {recipe.total_minutes} min</span>
           <span>{recipe.servings} servings</span>
           {recipe.rating && <span className="inline-flex items-center gap-0.5"><Star size={12} fill="currentColor" style={{ color: "var(--gold)" }} /> {recipe.rating}</span>}
+          <span className="ml-auto" title={`Added ${new Date(recipe.created_at).toLocaleString()}`}>{addedLabel(recipe.created_at)}</span>
           <button
             type="button"
             aria-label={`Tell the agent about ${recipe.title}`}
             title="Tell the agent about this recipe"
             onClick={() => openDrawer({ recipeId: recipe.id, recipeTitle: recipe.title })}
-            className="card-chat ml-auto grid h-8 w-8 place-items-center rounded-full text-ink opacity-0 transition hover:bg-surface-2 focus:opacity-100 group-hover:opacity-100"
+            className="card-chat grid h-8 w-8 place-items-center rounded-full text-ink opacity-0 transition hover:bg-surface-2 focus:opacity-100 group-hover:opacity-100"
           >
             <MessageCircle size={15} />
           </button>

@@ -424,7 +424,7 @@ export interface RecipeListFilters {
   presentation?: string;
   source?: RecipeSource;
   favorites?: boolean;
-  status?: Recipe["status"];
+  status?: Recipe["status"] | "any";
   run_id?: string;
   sort?: "newest" | "oldest" | "title" | "quickest";
   limit?: number;
@@ -435,8 +435,8 @@ export async function listRecipeCards(filters: RecipeListFilters = {}): Promise<
   let query = sb
     .from("recipes")
     .select(CARD_COLS)
-    .eq("user_id", uid)
-    .eq("status", filters.status ?? "saved");
+    .eq("user_id", uid);
+  if (filters.status !== "any") query = query.eq("status", filters.status ?? "saved");
   if (filters.cuisine) query = query.eq("cuisine", filters.cuisine);
   if (filters.dish_type) query = query.eq("dish_type", filters.dish_type);
   if (filters.health_profile) query = query.eq("health_profile", filters.health_profile);
@@ -762,4 +762,114 @@ export async function downloadPhoto(path: string): Promise<{ bytes: Uint8Array; 
   const { data, error } = await getSupabase().storage.from(config.buckets.inspirationPhotos).download(path);
   if (error) fail("downloadPhoto", error);
   return { bytes: new Uint8Array(await data.arrayBuffer()), contentType: data.type || "image/jpeg" };
+}
+
+// ---------------------------------------------------------------------------
+// Groups (collections of recipes with a consolidated shopping list)
+// ---------------------------------------------------------------------------
+
+export interface GroupRow {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+  recipe_count: number;
+  /** Up to four hero image URLs for the collage. */
+  covers: string[];
+}
+
+const GROUP_COLS = "id, name, description, created_at, updated_at";
+
+export async function listGroups(): Promise<GroupRow[]> {
+  const sb = getSupabase();
+  const { data, error } = await sb.from("groups").select(GROUP_COLS).eq("user_id", uid).order("created_at", { ascending: false });
+  if (error) fail("listGroups", error);
+  const groups = (data ?? []) as Array<Omit<GroupRow, "recipe_count" | "covers">>;
+  if (groups.length === 0) return [];
+  const { data: members, error: mErr } = await sb
+    .from("group_recipes")
+    .select("group_id, recipe_id, added_at")
+    .in("group_id", groups.map((g) => g.id))
+    .order("added_at", { ascending: false });
+  if (mErr) fail("listGroups.members", mErr);
+  const rows = (members ?? []) as Array<{ group_id: string; recipe_id: string }>;
+  const cards = await getRecipeCardsByIds([...new Set(rows.map((r) => r.recipe_id))]);
+  const heroByRecipe = new Map(cards.map((c) => [c.id, c.images.find((i) => i.status === "done" && i.url)?.url ?? null]));
+  return groups.map((g) => {
+    const mine = rows.filter((r) => r.group_id === g.id);
+    return {
+      ...g,
+      recipe_count: mine.length,
+      covers: mine.map((r) => heroByRecipe.get(r.recipe_id)).filter((u): u is string => Boolean(u)).slice(0, 4),
+    };
+  });
+}
+
+export async function createGroup(input: { name: string; description?: string }): Promise<GroupRow> {
+  const { data, error } = await getSupabase()
+    .from("groups")
+    .insert({ user_id: uid, name: input.name, description: input.description ?? "" })
+    .select(GROUP_COLS)
+    .single();
+  if (error) fail("createGroup", error);
+  return { ...(data as Omit<GroupRow, "recipe_count" | "covers">), recipe_count: 0, covers: [] };
+}
+
+export async function updateGroup(id: string, patch: { name?: string; description?: string }): Promise<void> {
+  const { error } = await getSupabase().from("groups").update(patch).eq("user_id", uid).eq("id", id);
+  if (error) fail("updateGroup", error);
+}
+
+export async function deleteGroup(id: string): Promise<void> {
+  const { error } = await getSupabase().from("groups").delete().eq("user_id", uid).eq("id", id);
+  if (error) fail("deleteGroup", error);
+}
+
+/** A group with its member recipes (full content, for the shopping list). */
+export async function getGroup(id: string): Promise<{ group: GroupRow; recipes: Recipe[] } | null> {
+  const sb = getSupabase();
+  const { data, error } = await sb.from("groups").select(GROUP_COLS).eq("user_id", uid).eq("id", id).maybeSingle();
+  if (error) fail("getGroup", error);
+  if (!data) return null;
+  const { data: members, error: mErr } = await sb
+    .from("group_recipes")
+    .select("recipe_id, added_at")
+    .eq("group_id", id)
+    .order("added_at", { ascending: false });
+  if (mErr) fail("getGroup.members", mErr);
+  const ids = ((members ?? []) as Array<{ recipe_id: string }>).map((m) => m.recipe_id);
+  const recipes = (await Promise.all(ids.map((rid) => getRecipe(rid)))).filter((r): r is Recipe => Boolean(r));
+  const covers = recipes.map((r) => r.images.find((i) => i.status === "done" && i.url)?.url).filter((u): u is string => Boolean(u)).slice(0, 4);
+  return { group: { ...(data as Omit<GroupRow, "recipe_count" | "covers">), recipe_count: recipes.length, covers }, recipes };
+}
+
+export async function addRecipeToGroup(groupId: string, recipeId: string): Promise<void> {
+  const { error } = await getSupabase()
+    .from("group_recipes")
+    .upsert({ group_id: groupId, recipe_id: recipeId }, { onConflict: "group_id,recipe_id", ignoreDuplicates: true });
+  if (error) fail("addRecipeToGroup", error);
+}
+
+export async function removeRecipeFromGroup(groupId: string, recipeId: string): Promise<void> {
+  const { error } = await getSupabase().from("group_recipes").delete().eq("group_id", groupId).eq("recipe_id", recipeId);
+  if (error) fail("removeRecipeFromGroup", error);
+}
+
+/** Group ids a recipe belongs to, for the add-to-group popover. */
+export async function groupIdsForRecipe(recipeId: string): Promise<string[]> {
+  const { data, error } = await getSupabase().from("group_recipes").select("group_id").eq("recipe_id", recipeId);
+  if (error) fail("groupIdsForRecipe", error);
+  return ((data ?? []) as Array<{ group_id: string }>).map((r) => r.group_id);
+}
+
+/** Number of generator drafts waiting to be kept or discarded. */
+export async function countCandidates(): Promise<number> {
+  const { count, error } = await getSupabase()
+    .from("recipes")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", uid)
+    .eq("status", "candidate");
+  if (error) fail("countCandidates", error);
+  return count ?? 0;
 }

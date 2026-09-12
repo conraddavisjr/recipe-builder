@@ -4,7 +4,7 @@ import { generateFoodPhoto, generateIngredientArt, ingredientArtPrompt } from "@
 import type { GenerationMode } from "@/lib/ai/context";
 import { config } from "@/lib/config";
 import * as db from "@/lib/db";
-import type { RecipeImage, Task } from "@/lib/types";
+import type { GeneratedRecipe, RecipeImage, Task } from "@/lib/types";
 import { gatherContext } from "./gather";
 
 /**
@@ -30,61 +30,11 @@ const generate_recipes: Handler = async (task) => {
     const count = run.requested_count;
     const result = await generateRecipes({ context, mode, count, imagesPerRecipe: settings.images_per_recipe });
 
-    const status = run.trigger === "generator" ? "candidate" : "saved";
-    const recipes = await db.insertRecipes(result.recipes, {
-      run_id: runId,
-      source: sourceFor(run.trigger),
-      status,
-      similar_to_id: run.similar_to_id,
-      inspiration_id: run.inspiration_id,
-    });
-
-    // Image rows first (so the UI shows placeholders), then one task each.
-    const imageRows = recipes.flatMap((r) =>
-      r.image_prompts.slice(0, settings.images_per_recipe).map((prompt, position) => ({
-        recipe_id: r.id,
-        kind: IMAGE_KINDS[Math.min(position, IMAGE_KINDS.length - 1)],
-        position,
-        prompt,
-      })),
-    );
-    const images = await db.insertRecipeImages(imageRows);
-    const imageTasks = images.map((img) => ({
-      type: "render_recipe_image" as const,
-      payload: { image_id: img.id, recipe_id: img.recipe_id, prompt: img.prompt },
-      runId,
-    }));
-
-    // Ingredient art: register every key, render only the new ones.
-    let artTasks: Array<{ type: "render_ingredient_art"; payload: Record<string, unknown>; runId: string }> = [];
-    if (settings.ingredient_art_enabled) {
-      const items = recipes.flatMap((r) =>
-        r.ingredients.map((i) => ({ ingredient_key: i.ingredient_key, display_name: i.name, prompt: ingredientArtPrompt(i.name) })),
-      );
-      const fresh = await db.registerIngredientArt(items);
-      const byKey = new Map(items.map((i) => [i.ingredient_key, i]));
-      artTasks = fresh.map((key) => ({
-        type: "render_ingredient_art" as const,
-        payload: { ingredient_key: key, display_name: byKey.get(key)?.display_name ?? key },
-        runId,
-      }));
-    }
-
-    // Two inserts on purpose: the queue is FIFO by created_at, and a single
-    // insert stamps every row identically. Food photos go first so a card
-    // gets its hero image before the ingredient art trickles in.
-    await db.enqueueTasks(imageTasks);
-    await db.enqueueTasks(artTasks);
-    await db.updateRun(runId, {
-      status: imageTasks.length + artTasks.length > 0 ? "rendering" : "done",
-      finished_at: imageTasks.length + artTasks.length > 0 ? null : new Date().toISOString(),
-      context_snapshot: {
-        prompt: result.prompt,
-        review: result.review,
-        usage: result.usage,
-        model: config.anthropicModel,
-        recipes: recipes.map((r) => ({ id: r.id, title: r.title })),
-      },
+    await storeBatch(run, result.recipes, settings, {
+      prompt: result.prompt,
+      review: result.review,
+      usage: result.usage,
+      model: config.anthropicModel,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -164,6 +114,73 @@ const cleanup_candidates: Handler = async () => {
   const ids = stale.filter((r) => new Date(r.created_at).getTime() < cutoff).map((r) => r.id);
   await db.deleteRecipes(ids);
 };
+
+
+/**
+ * Persist a validated batch for a run: recipes (drafts for generator runs,
+ * saved otherwise), image rows and render tasks, ingredient-art
+ * registration, and the run's status and snapshot. Shared by the model
+ * path and the import endpoint, so both produce identical results.
+ */
+export async function storeBatch(
+  run: NonNullable<Awaited<ReturnType<typeof db.getRun>>>,
+  generated: GeneratedRecipe[],
+  settings: Awaited<ReturnType<typeof db.getSettings>>,
+  snapshot: Record<string, unknown>,
+): Promise<string[]> {
+  const runId = run.id;
+    const status = run.trigger === "generator" ? "candidate" : "saved";
+    const recipes = await db.insertRecipes(generated, {
+      run_id: runId,
+      source: sourceFor(run.trigger),
+      status,
+      similar_to_id: run.similar_to_id,
+      inspiration_id: run.inspiration_id,
+    });
+
+    // Image rows first (so the UI shows placeholders), then one task each.
+    const imageRows = recipes.flatMap((r) =>
+      r.image_prompts.slice(0, settings.images_per_recipe).map((prompt, position) => ({
+        recipe_id: r.id,
+        kind: IMAGE_KINDS[Math.min(position, IMAGE_KINDS.length - 1)],
+        position,
+        prompt,
+      })),
+    );
+    const images = await db.insertRecipeImages(imageRows);
+    const imageTasks = images.map((img) => ({
+      type: "render_recipe_image" as const,
+      payload: { image_id: img.id, recipe_id: img.recipe_id, prompt: img.prompt },
+      runId,
+    }));
+
+    // Ingredient art: register every key, render only the new ones.
+    let artTasks: Array<{ type: "render_ingredient_art"; payload: Record<string, unknown>; runId: string }> = [];
+    if (settings.ingredient_art_enabled) {
+      const items = recipes.flatMap((r) =>
+        r.ingredients.map((i) => ({ ingredient_key: i.ingredient_key, display_name: i.name, prompt: ingredientArtPrompt(i.name) })),
+      );
+      const fresh = await db.registerIngredientArt(items);
+      const byKey = new Map(items.map((i) => [i.ingredient_key, i]));
+      artTasks = fresh.map((key) => ({
+        type: "render_ingredient_art" as const,
+        payload: { ingredient_key: key, display_name: byKey.get(key)?.display_name ?? key },
+        runId,
+      }));
+    }
+
+    // Two inserts on purpose: the queue is FIFO by created_at, and a single
+    // insert stamps every row identically. Food photos go first so a card
+    // gets its hero image before the ingredient art trickles in.
+    await db.enqueueTasks(imageTasks);
+    await db.enqueueTasks(artTasks);
+    await db.updateRun(runId, {
+      status: imageTasks.length + artTasks.length > 0 ? "rendering" : "done",
+      finished_at: imageTasks.length + artTasks.length > 0 ? null : new Date().toISOString(),
+      context_snapshot: { ...snapshot, recipes: recipes.map((r) => ({ id: r.id, title: r.title })) },
+    });
+    return recipes.map((r) => r.id);
+}
 
 export const HANDLERS: Record<Task["type"], Handler> = {
   generate_recipes,

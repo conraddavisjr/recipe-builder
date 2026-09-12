@@ -42,3 +42,6 @@ next-env.d.ts
 
 # Keep the documented template; only real env files stay private.
 !.env.example
+
+# Local database dumps
+/backups/
