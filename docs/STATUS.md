@@ -104,3 +104,19 @@ Applied:
 ## Next
 
 Chunk 6 (deploy) is deferred by request; the app runs entirely on the local Supabase stack. Chunk 7 polish continues opportunistically.
+
+## Step visuals (2026-09-13)
+
+Built:
+- `step_media` table (one still or clip per step, unique per recipe, step and kind) and two queue task types; migration `20260914000000_step_media.sql` applied to the hosted project.
+- `lib/ai/storyboard.ts`: deterministic per-step prompts that carry a running inventory of what earlier steps put in the pan (tested).
+- `lib/ai/video.ts`: video job start, poll and download; `render_step_video` re-enqueues itself when a clip outlives a worker slice.
+- Routes: `GET/POST /api/recipes/[id]/step-media` (detail page action) and `POST /api/step-media/import` (agent-written prompts, worker secret).
+- Detail page: "Illustrate steps" menu next to "Show tags"; each step shows its clip (preferred) or still under the prose with a shimmer while pending; the page polls until every frame lands.
+
+Verified:
+- `tsc`, `eslint`, `vitest` clean.
+- First real run: seven hand-written stills for the cast iron pimenton chickpeas, imported through the agent route and rendered by the local worker against the hosted database.
+
+Not yet verified:
+- A `sora-2` clip end to end (pipeline built; first film run is the person's call because of cost).

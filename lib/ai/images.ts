@@ -22,6 +22,14 @@ const FOOD_PHOTO_STYLE =
 const INGREDIENT_ART_STYLE =
   "A single ingredient illustrated in a warm hand-drawn cookbook style: soft watercolor wash with fine ink linework, gentle shadows, centered, isolated on a clean pure white background, no text, no labels, no border, no other objects.";
 
+/**
+ * Method-step stills are instructional, not editorial: the cook's hands are
+ * in frame doing the action, the pan shows exactly what is in it, and the
+ * picture never carries text (the step's own words sit beside it).
+ */
+const STEP_STILL_STYLE =
+  "Instructional cooking photograph from a slightly elevated three-quarter angle, a home kitchen with natural window light, the cook's hands in frame performing the action, the pan's contents clearly visible and accurate, realistic, no text, no captions, no labels, no arrows, no watermark.";
+
 export interface GeneratedImage {
   bytes: Uint8Array;
   contentType: "image/webp";
@@ -44,6 +52,11 @@ async function generate(prompt: string, size: string, quality: "low" | "medium" 
 /** Landscape hero or angle shot of a finished dish. */
 export function generateFoodPhoto(subjectPrompt: string): Promise<GeneratedImage> {
   return generate(`${subjectPrompt}\n\n${FOOD_PHOTO_STYLE}`, "1536x1024", "medium");
+}
+
+/** Landscape still of one method step, hands in frame. */
+export function generateStepStill(subjectPrompt: string): Promise<GeneratedImage> {
+  return generate(`${subjectPrompt}\n\n${STEP_STILL_STYLE}`, "1536x1024", "medium");
 }
 
 /** Square illustration for one ingredient, cached forever by key. */

@@ -34,6 +34,7 @@ export const config = {
 
   anthropicModel: optional("ANTHROPIC_MODEL", "claude-opus-5"),
   openaiImageModel: optional("OPENAI_IMAGE_MODEL", "gpt-image-2.5-flare"),
+  openaiVideoModel: optional("OPENAI_VIDEO_MODEL", "sora-2"),
   openaiApiKey: optional("OPENAI_API_KEY"),
 
   cronSecret: optional("CRON_SECRET"),

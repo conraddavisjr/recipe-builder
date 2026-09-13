@@ -9,6 +9,7 @@ import type {
   ProfileCategory,
   SegmentKind,
   SimilarityAxis,
+  StepMediaKind,
   StepSchema,
   StepSegmentSchema,
   UserIngredientSchema,
@@ -30,6 +31,7 @@ export type UserIngredient = z.infer<typeof UserIngredientSchema>;
 export type ProfileCategory = z.infer<typeof ProfileCategory>;
 export type InstructionTier = z.infer<typeof InstructionTier>;
 export type SimilarityAxis = z.infer<typeof SimilarityAxis>;
+export type StepMediaKind = z.infer<typeof StepMediaKind>;
 
 export type RecipeSource = "autonomous" | "generator" | "similar" | "inspiration";
 export type RecipeStatus = "candidate" | "saved";
@@ -77,6 +79,25 @@ export interface RecipeImage {
   /** Public URL, resolved in lib/db.ts from storage_path. Null while pending. */
   url: string | null;
   status: ImageStatus;
+}
+
+/** One still or clip illustrating a single method step. */
+export interface StepMedia {
+  id: string;
+  recipe_id: string;
+  step_number: number;
+  kind: StepMediaKind;
+  prompt: string;
+  model: string;
+  seconds: number | null;
+  /** Public URL of the still (image) or the MP4 (video). Null while pending. */
+  url: string | null;
+  /** Public URL of the clip's poster frame; null for stills. */
+  poster_url: string | null;
+  status: ImageStatus;
+  error: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface IngredientArt {
@@ -147,7 +168,9 @@ export type TaskType =
   | "render_ingredient_art"
   | "analyze_inspiration"
   | "reanalyze_ingredients"
-  | "cleanup_candidates";
+  | "cleanup_candidates"
+  | "render_step_image"
+  | "render_step_video";
 
 export interface Task {
   id: string;

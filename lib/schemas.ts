@@ -175,6 +175,23 @@ export const InspirationIngredientsPatch = z.object({
   user_ingredients: z.array(UserIngredientSchema).max(80),
 });
 
+/** Step media: a still or a short clip per method step. */
+export const StepMediaKind = z.enum(["image", "video"]);
+export const VideoSeconds = z.union([z.literal(4), z.literal(8), z.literal(12)]);
+
+export const StepMediaInput = z.object({
+  kind: StepMediaKind,
+  seconds: VideoSeconds.default(8),
+});
+
+/** Agent-authored storyboard: explicit prompts per step, imported with the worker secret. */
+export const StepMediaImportInput = z.object({
+  recipe_id: z.string().uuid(),
+  kind: StepMediaKind,
+  seconds: VideoSeconds.default(8),
+  prompts: z.array(z.object({ step_number: z.number().int().min(1), prompt: z.string().trim().min(20).max(4000) })).min(1),
+});
+
 export const RecipeFeedbackInput = z.object({
   favorite: z.boolean().optional(),
   rating: z.number().int().min(1).max(5).nullable().optional(),

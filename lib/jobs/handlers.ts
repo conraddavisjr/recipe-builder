@@ -1,10 +1,11 @@
 import { generateRecipes } from "@/lib/ai/generateRecipes";
 import { analyzeInspiration, reanalyzeIngredients } from "@/lib/ai/analyzeInspiration";
-import { generateFoodPhoto, generateIngredientArt, ingredientArtPrompt } from "@/lib/ai/images";
+import { generateFoodPhoto, generateIngredientArt, generateStepStill, ingredientArtPrompt } from "@/lib/ai/images";
+import { downloadStepClip, pollStepClip, startStepClip, type ClipSeconds } from "@/lib/ai/video";
 import type { GenerationMode } from "@/lib/ai/context";
 import { config } from "@/lib/config";
 import * as db from "@/lib/db";
-import type { GeneratedRecipe, RecipeImage, Task } from "@/lib/types";
+import type { GeneratedRecipe, RecipeImage, StepMediaKind, Task } from "@/lib/types";
 import { gatherContext } from "./gather";
 
 /**
@@ -108,6 +109,93 @@ const reanalyze_ingredients: Handler = async (task) => {
     throw err;
   }
 };
+const render_step_image: Handler = async (task) => {
+  const mediaId = String(task.payload.media_id);
+  const media = await db.getStepMedia(mediaId);
+  if (!media) return; // the recipe or the row is gone; nothing to render
+  try {
+    const image = await generateStepStill(media.prompt);
+    const path = await db.uploadBytes(config.buckets.recipeImages, `steps/${media.recipe_id}/${media.step_number}.webp`, image.bytes, image.contentType);
+    await db.markStepMedia(mediaId, { storage_path: path, status: "done", error: null });
+  } catch (err) {
+    if (task.attempts >= task.max_attempts) {
+      await db.markStepMedia(mediaId, { status: "failed", error: err instanceof Error ? err.message : String(err) });
+    }
+    throw err;
+  }
+};
+
+/** How long one worker slice waits on a clip before handing the job to the next slice. */
+const CLIP_WAIT_MS = 150_000;
+const CLIP_POLL_MS = 10_000;
+
+/**
+ * Video jobs are asynchronous on the provider side and routinely take
+ * longer than a worker slice. The first attempt starts the job and stores
+ * its id; every attempt polls it. If the clip is still rendering when the
+ * wait budget runs out, the handler re-enqueues itself and returns success,
+ * so the attempt counter is only spent on real failures.
+ */
+const render_step_video: Handler = async (task) => {
+  const mediaId = String(task.payload.media_id);
+  const media = await db.getStepMedia(mediaId);
+  if (!media) return;
+  try {
+    let jobId = media.provider_job_id;
+    if (!jobId) {
+      const job = await startStepClip(media.prompt, (media.seconds ?? 8) as ClipSeconds);
+      jobId = job.id;
+      await db.markStepMedia(mediaId, { provider_job_id: jobId });
+    }
+    const deadline = Date.now() + CLIP_WAIT_MS;
+    for (;;) {
+      const job = await pollStepClip(jobId);
+      if (job.status === "failed") throw new Error(job.error ?? "video job failed");
+      if (job.status === "completed") {
+        const assets = await downloadStepClip(jobId);
+        const base = `steps/${media.recipe_id}/${media.step_number}`;
+        const path = await db.uploadBytes(config.buckets.recipeImages, `${base}.mp4`, assets.video, "video/mp4");
+        const posterPath = assets.poster
+          ? await db.uploadBytes(config.buckets.recipeImages, `${base}-poster.webp`, assets.poster.bytes, assets.poster.contentType)
+          : null;
+        await db.markStepMedia(mediaId, { storage_path: path, poster_path: posterPath, status: "done", error: null });
+        return;
+      }
+      if (Date.now() >= deadline) {
+        await db.enqueueTask("render_step_video", { media_id: mediaId, recipe_id: media.recipe_id });
+        return;
+      }
+      await new Promise((r) => setTimeout(r, CLIP_POLL_MS));
+    }
+  } catch (err) {
+    if (task.attempts >= task.max_attempts) {
+      await db.markStepMedia(mediaId, { status: "failed", error: err instanceof Error ? err.message : String(err) });
+    }
+    throw err;
+  }
+};
+
+/**
+ * Register pending media rows for a set of step prompts and queue one
+ * render task each. Shared by the detail-page action (deterministic
+ * storyboard) and the import route (agent-written prompts).
+ */
+export async function queueStepMedia(
+  recipeId: string,
+  kind: StepMediaKind,
+  frames: Array<{ step_number: number; prompt: string }>,
+  seconds: ClipSeconds,
+) {
+  const model = kind === "video" ? config.openaiVideoModel : config.openaiImageModel;
+  const rows = await db.upsertStepMedia(
+    frames.map((f) => ({ recipe_id: recipeId, step_number: f.step_number, kind, prompt: f.prompt, model, seconds: kind === "video" ? seconds : null })),
+  );
+  await db.enqueueTasks(
+    rows.map((m) => ({ type: kind === "video" ? ("render_step_video" as const) : ("render_step_image" as const), payload: { media_id: m.id, recipe_id: recipeId } })),
+  );
+  return rows;
+}
+
 const cleanup_candidates: Handler = async () => {
   const stale = await db.listRecipeCards({ status: "candidate", sort: "oldest", limit: 100 });
   const cutoff = Date.now() - 24 * 60 * 60 * 1000;
@@ -189,6 +277,8 @@ export const HANDLERS: Record<Task["type"], Handler> = {
   analyze_inspiration,
   reanalyze_ingredients,
   cleanup_candidates,
+  render_step_image,
+  render_step_video,
 };
 
 /**

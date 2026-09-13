@@ -29,6 +29,7 @@ Search the library by keyword, filter by cuisine, dish type, health profile or p
 **Recipes you can actually cook from.**
 Every recipe carries a poetic summary, the tools you need, scaled ingredients with hand-drawn illustrations, and a method whose steps read as prose.
 Under each step a quiet strip shows the time, temperature, equipment and technique at a glance, and a "Show tags" toggle lights up every tagged phrase for people who want the full annotation.
+Press "Illustrate steps" and every step gets its own picture, or a short clip, of the exact moment described: what is already in the pan, what tool is in hand, what a "well" for an egg looks like.
 
 <p align="center">
   <img src="docs/screenshots/recipe.jpg" alt="Recipe detail: title, poetic summary, hero photo, and a sidebar of similar recipes" width="49%">

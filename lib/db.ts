@@ -11,6 +11,7 @@ import type {
   Recipe,
   RecipeCard,
   RecipeImage,
+  StepMedia,
   RecipeSource,
   Run,
   RunTrigger,
@@ -524,6 +525,11 @@ export async function deleteRecipes(ids: string[]): Promise<void> {
   const sb = getSupabase();
   const { data: images } = await sb.from("recipe_images").select("storage_path").in("recipe_id", ids);
   const paths = ((images ?? []) as Array<{ storage_path: string | null }>).map((i) => i.storage_path).filter((p): p is string => Boolean(p));
+  const { data: media } = await sb.from("step_media").select("storage_path, poster_path").in("recipe_id", ids);
+  for (const m of (media ?? []) as Array<{ storage_path: string | null; poster_path: string | null }>) {
+    if (m.storage_path) paths.push(m.storage_path);
+    if (m.poster_path) paths.push(m.poster_path);
+  }
   if (paths.length) await sb.storage.from(config.buckets.recipeImages).remove(paths);
   const { error } = await sb.from("recipes").delete().eq("user_id", uid).in("id", ids);
   if (error) fail("deleteRecipes", error);
@@ -643,6 +649,74 @@ export async function registerIngredientArt(items: Array<{ ingredient_key: strin
 export async function markIngredientArt(key: string, patch: { storage_path?: string; status: IngredientArt["status"]; error?: string | null }): Promise<void> {
   const { error } = await getSupabase().from("ingredient_art").update(patch).eq("ingredient_key", key);
   if (error) fail("markIngredientArt", error);
+}
+
+// ---------------------------------------------------------------------------
+// Step media (one still or clip per method step)
+// ---------------------------------------------------------------------------
+
+const STEP_MEDIA_COLS = "id, recipe_id, step_number, kind, prompt, model, seconds, storage_path, poster_path, status, error, created_at, updated_at";
+
+type StepMediaRow = Omit<StepMedia, "url" | "poster_url"> & { storage_path: string | null; poster_path: string | null };
+
+function toStepMedia(row: StepMediaRow): StepMedia {
+  const { storage_path, poster_path, ...rest } = row;
+  return {
+    ...rest,
+    url: publicUrl(config.buckets.recipeImages, storage_path),
+    poster_url: publicUrl(config.buckets.recipeImages, poster_path),
+  };
+}
+
+export async function listStepMedia(recipeId: string): Promise<StepMedia[]> {
+  const { data, error } = await getSupabase()
+    .from("step_media")
+    .select(STEP_MEDIA_COLS)
+    .eq("recipe_id", recipeId)
+    .order("kind")
+    .order("step_number");
+  if (error) fail("listStepMedia", error);
+  return ((data ?? []) as StepMediaRow[]).map(toStepMedia);
+}
+
+export async function getStepMedia(id: string): Promise<(StepMedia & { provider_job_id: string | null }) | null> {
+  const { data, error } = await getSupabase()
+    .from("step_media")
+    .select(`${STEP_MEDIA_COLS}, provider_job_id`)
+    .eq("id", id)
+    .maybeSingle();
+  if (error) fail("getStepMedia", error);
+  if (!data) return null;
+  const { provider_job_id, ...row } = data as StepMediaRow & { provider_job_id: string | null };
+  return { ...toStepMedia(row), provider_job_id };
+}
+
+/**
+ * Register one pending media row per step. Re-illustrating a step replaces
+ * its row in place (same recipe, step and kind), so the old file is
+ * overwritten at the same storage path when the new render lands.
+ */
+export async function upsertStepMedia(
+  rows: Array<{ recipe_id: string; step_number: number; kind: StepMedia["kind"]; prompt: string; model: string; seconds: number | null }>,
+): Promise<StepMedia[]> {
+  if (rows.length === 0) return [];
+  const { data, error } = await getSupabase()
+    .from("step_media")
+    .upsert(
+      rows.map((r) => ({ ...r, status: "pending", error: null, provider_job_id: null })),
+      { onConflict: "recipe_id,step_number,kind" },
+    )
+    .select(STEP_MEDIA_COLS);
+  if (error) fail("upsertStepMedia", error);
+  return ((data ?? []) as StepMediaRow[]).map(toStepMedia);
+}
+
+export async function markStepMedia(
+  id: string,
+  patch: { storage_path?: string; poster_path?: string | null; provider_job_id?: string | null; status?: StepMedia["status"]; error?: string | null },
+): Promise<void> {
+  const { error } = await getSupabase().from("step_media").update(patch).eq("id", id);
+  if (error) fail("markStepMedia", error);
 }
 
 // ---------------------------------------------------------------------------

@@ -29,3 +29,11 @@ The app has no grocery API. "Shop for me" creates a `shopping_runs` row with sta
 3. In the person's own Chrome profile (they must already be signed in to Amazon; never enter credentials), open https://www.amazon.com/wholefoods, search each line, add the best match to the cart. Prefer Whole Foods 365 items, match the unit and quantity, and note substitutions.
 4. Report with `{"status":"done","results":[{"ingredient_key":"...","unit":"...","status":"added|skipped|not_found","product":"...","note":"..."}],"notes":"..."}`. Use `failed` with `notes` if the run cannot be completed.
 5. Never place the order. The person reviews the cart and checks out.
+
+# Step visuals (agent procedure)
+
+Every recipe step can carry one still or one short clip (`step_media`, rendered by `render_step_image` / `render_step_video` on the queue). The detail page's "Illustrate steps" menu uses the deterministic storyboard in `lib/ai/storyboard.ts`. When a recipe deserves sharper prompts (an implicit "leave the onion in", what a "well" looks like), write them by hand and import:
+
+`POST /api/step-media/import` with `Authorization: Bearer $WORKER_SECRET` and `{"recipe_id":"...","kind":"image|video","seconds":8,"prompts":[{"step_number":1,"prompt":"..."}]}`.
+
+Prompt rules: state what is already in the pan and that nothing was removed, name the tool in hand, describe the exact moment of the action, no text or labels in the picture. Stills cost cents; clips cost roughly a dollar per step on `sora-2`, so ask before filming a whole recipe.

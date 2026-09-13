@@ -4,7 +4,7 @@ import { createElement, useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, ChevronDown, Heart, LoaderCircle, Minus, Plus, Sparkles, Trash } from "lucide-react";
-import type { IngredientArt, Recipe, RecipeCard as RecipeCardData } from "@/lib/types";
+import type { IngredientArt, Recipe, RecipeCard as RecipeCardData, StepMedia, StepMediaKind } from "@/lib/types";
 import { api } from "@/lib/client/api";
 import { findCatalogItem } from "@/lib/catalog";
 import { equipmentIcon } from "@/lib/icons";
@@ -12,6 +12,7 @@ import { useShell } from "@/components/shell/ShellProvider";
 import { IngredientRow } from "./IngredientRow";
 import { SegmentLegend, StepFacts, StepProse, type SegmentMode } from "./Segment";
 import { SimilarModal } from "./SimilarModal";
+import { StepMediaControls, StepMediaFigure, pickStepMedia } from "./StepMedia";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { AddToGroup } from "@/components/groups/AddToGroup";
 import { AddToCartButton } from "@/components/shopping/AddToCartButton";
@@ -25,6 +26,7 @@ interface Payload {
   ingredient_art: Record<string, IngredientArt>;
   similar: Similar[];
   group_ids: string[];
+  step_media: StepMedia[];
   cart: { id: string; in_cart: boolean; count: number };
 }
 
@@ -46,6 +48,7 @@ export function RecipeDetail({ id }: { id: string }) {
   const [mode, setMode] = useState<SegmentMode>("calm");
   const checklist = useChecklist(`palate.recipe.${id}`);
   const [activeImage, setActiveImage] = useState(0);
+  const [illustrating, setIllustrating] = useState(false);
 
   // "Show tags" preference is per browser and survives reloads.
   useEffect(() => {
@@ -107,8 +110,9 @@ export function RecipeDetail({ id }: { id: string }) {
 
   const pendingImages = data?.recipe.images.some((i) => i.status === "pending") ?? false;
   const pendingArt = Object.values(data?.ingredient_art ?? {}).some((a) => a.status === "pending");
+  const pendingStepMedia = data?.step_media.some((m) => m.status === "pending") ?? false;
   useEffect(() => {
-    if (!pendingImages && !pendingArt && !similarRun) return;
+    if (!pendingImages && !pendingArt && !pendingStepMedia && !similarRun) return;
     const t = setInterval(async () => {
       await load();
       if (similarRun) {
@@ -117,7 +121,21 @@ export function RecipeDetail({ id }: { id: string }) {
       }
     }, 4000);
     return () => clearInterval(t);
-  }, [pendingImages, pendingArt, similarRun, load]);
+  }, [pendingImages, pendingArt, pendingStepMedia, similarRun, load]);
+
+  async function illustrate(kind: StepMediaKind) {
+    if (!data) return;
+    setIllustrating(true);
+    try {
+      const { step_media } = await api<{ step_media: StepMedia[] }>(`/api/recipes/${id}/step-media`, { method: "POST", json: { kind } });
+      // Replace rows of this kind; the other kind's rows stay as they were.
+      setData({ ...data, step_media: [...data.step_media.filter((m) => m.kind !== kind), ...step_media] });
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setIllustrating(false);
+    }
+  }
 
   async function patch(partial: { favorite?: boolean; rating?: number | null; feedback?: string | null }) {
     if (!data) return;
@@ -265,9 +283,12 @@ export function RecipeDetail({ id }: { id: string }) {
         <section className="section-card mt-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="display text-2xl">Method</h2>
-            <button type="button" className="chip" data-active={mode === "tagged"} aria-pressed={mode === "tagged"} onClick={toggleMode} title="Highlight every ingredient, tool, temperature, time and technique inside the steps">
-              Show tags
-            </button>
+            <div className="flex items-center gap-2">
+              <StepMediaControls media={data.step_media} busy={illustrating} onIllustrate={illustrate} />
+              <button type="button" className="chip" data-active={mode === "tagged"} aria-pressed={mode === "tagged"} onClick={toggleMode} title="Highlight every ingredient, tool, temperature, time and technique inside the steps">
+                Show tags
+              </button>
+            </div>
           </div>
           {mode === "tagged" && <div className="mt-3"><SegmentLegend /></div>}
           <ol className="mt-6 divide-y divide-line">
@@ -280,6 +301,10 @@ export function RecipeDetail({ id }: { id: string }) {
                   <p className={`mt-3 text-[15px] ${mode === "tagged" ? "leading-[1.9]" : "leading-[1.7]"}`}>
                     <StepProse segments={step.segments} mode={mode} />
                   </p>
+                  {(() => {
+                    const media = pickStepMedia(data.step_media, step.number);
+                    return media ? <StepMediaFigure media={media} title={step.title} /> : null;
+                  })()}
                 </div>
               </li>
             ))}
