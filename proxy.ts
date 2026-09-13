@@ -35,6 +35,6 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     // Skip: login flow and OAuth callback, machine endpoints, Next internals, static files.
-    "/((?!login|auth/callback|api/auth|api/worker|api/cron|api/runs/import|_next/static|_next/image|favicon.ico|icon|apple-icon|illustrations|.*\\.(?:png|jpg|jpeg|webp|svg|ico|txt|xml)).*)",
+    "/((?!login|auth/callback|api/auth|api/worker|api/cron|api/runs/import|api/shopping/[^/]+/complete|_next/static|_next/image|favicon.ico|icon|apple-icon|illustrations|.*\\.(?:png|jpg|jpeg|webp|svg|ico|txt|xml)).*)",
   ],
 };
