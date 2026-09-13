@@ -57,6 +57,12 @@ Gather recipes for an occasion ("Thanksgiving", "a week of lunches") from any re
 Each group consolidates the ingredients of its recipes into a single checklist, combining quantities when the ingredient and unit match and naming which recipes need each line.
 Every recipe also has its own ingredient checklist for the shop.
 
+**Shop for me.**
+Add recipes to a gather cart; the list is consolidated and pantry staples are set aside.
+Press "Shop for me" and the agent fills your Whole Foods cart on Amazon, reporting what it added, skipped or could not find; you review and check out.
+Every trip is kept in a history with its date, an editable name, and a "Shop this again" button.
+There is no grocery API behind this: the request is queued for an agent with browser access (see `AGENTS.md`).
+
 **An agent you can talk to.**
 A drawer slides in from any recipe card or detail page.
 Tell the agent an absolute truth ("I am allergic to walnuts") that it must never break, or a preference ("lately I want brothy dinners") that cascades, with newer preferences winning over older ones.

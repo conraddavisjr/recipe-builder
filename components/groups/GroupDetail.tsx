@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, LoaderCircle, RotateCcw, Trash, X } from "lucide-react";
+import { ArrowLeft, LoaderCircle, RotateCcw, ShoppingBasket, Trash, X } from "lucide-react";
 import type { GroupRow } from "@/lib/db";
 import type { ConsolidatedLine } from "@/lib/groups";
 import type { RecipeCard as RecipeCardData } from "@/lib/types";
@@ -43,6 +43,18 @@ export function GroupDetail({ id }: { id: string }) {
       await api(`/api/groups/${id}/recipes`, { method: "DELETE", json: { recipe_id: recipeId } });
       await load();
     } finally {
+      setBusy(null);
+    }
+  }
+
+  async function addAllToCart() {
+    setBusy("cart");
+    try {
+      const { cart } = await api<{ cart: { id: string } }>("/api/shopping");
+      for (const r of data?.recipes ?? []) await api(`/api/shopping/${cart.id}/recipes`, { method: "POST", json: { recipe_id: r.id } });
+      router.push("/shop");
+    } catch (e) {
+      setError((e as Error).message);
       setBusy(null);
     }
   }
@@ -103,7 +115,10 @@ export function GroupDetail({ id }: { id: string }) {
           )}
         </section>
 
-        <div className="mt-10">
+        <div className="mt-10 flex flex-wrap items-center gap-3">
+          <button type="button" className="btn" disabled={busy !== null || recipes.length === 0} onClick={addAllToCart}>
+            {busy === "cart" ? <LoaderCircle size={15} className="animate-spin" /> : <ShoppingBasket size={15} />} Add all to shopping
+          </button>
           <button type="button" className="btn btn-text text-muted" onClick={() => setConfirm(true)}><Trash size={14} /> Delete this group</button>
         </div>
       </div>

@@ -873,3 +873,106 @@ export async function countCandidates(): Promise<number> {
   if (error) fail("countCandidates", error);
   return count ?? 0;
 }
+
+// ---------------------------------------------------------------------------
+// Shopping runs (gather cart -> request for the agent -> history)
+// ---------------------------------------------------------------------------
+
+import type { ShoppingItem } from "@/lib/shopping";
+
+export type ShoppingStatus = "gathering" | "requested" | "shopping" | "done" | "failed";
+
+export interface ShoppingRun {
+  id: string;
+  name: string;
+  store: string;
+  status: ShoppingStatus;
+  skip_staples: boolean;
+  items: ShoppingItem[];
+  notes: string;
+  requested_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  recipes: RecipeCard[];
+}
+
+const SHOP_COLS = "id, name, store, status, skip_staples, items, notes, requested_at, completed_at, created_at, updated_at";
+
+async function hydrateRuns(rows: Array<Omit<ShoppingRun, "recipes">>): Promise<ShoppingRun[]> {
+  if (rows.length === 0) return [];
+  const { data, error } = await getSupabase()
+    .from("shopping_run_recipes")
+    .select("run_id, recipe_id, added_at")
+    .in("run_id", rows.map((r) => r.id))
+    .order("added_at", { ascending: true });
+  if (error) fail("hydrateRuns", error);
+  const links = (data ?? []) as Array<{ run_id: string; recipe_id: string }>;
+  const cards = await getRecipeCardsByIds([...new Set(links.map((l) => l.recipe_id))]);
+  const byId = new Map(cards.map((c) => [c.id, c]));
+  return rows.map((r) => ({
+    ...r,
+    recipes: links.filter((l) => l.run_id === r.id).map((l) => byId.get(l.recipe_id)).filter((c): c is RecipeCard => Boolean(c)),
+  }));
+}
+
+/** The single open gather cart, created on demand. */
+export async function getOrCreateGatheringRun(): Promise<ShoppingRun> {
+  const sb = getSupabase();
+  const { data, error } = await sb.from("shopping_runs").select(SHOP_COLS).eq("user_id", uid).eq("status", "gathering").order("created_at", { ascending: false }).limit(1).maybeSingle();
+  if (error) fail("getOrCreateGatheringRun", error);
+  if (data) return (await hydrateRuns([data as Omit<ShoppingRun, "recipes">]))[0];
+  const { data: created, error: insErr } = await sb.from("shopping_runs").insert({ user_id: uid }).select(SHOP_COLS).single();
+  if (insErr) fail("getOrCreateGatheringRun.insert", insErr);
+  return (await hydrateRuns([created as Omit<ShoppingRun, "recipes">]))[0];
+}
+
+export async function listShoppingRuns(statuses?: ShoppingStatus[]): Promise<ShoppingRun[]> {
+  let q = getSupabase().from("shopping_runs").select(SHOP_COLS).eq("user_id", uid).order("created_at", { ascending: false }).limit(100);
+  if (statuses && statuses.length) q = q.in("status", statuses);
+  const { data, error } = await q;
+  if (error) fail("listShoppingRuns", error);
+  return hydrateRuns((data ?? []) as Array<Omit<ShoppingRun, "recipes">>);
+}
+
+export async function getShoppingRun(id: string): Promise<ShoppingRun | null> {
+  const { data, error } = await getSupabase().from("shopping_runs").select(SHOP_COLS).eq("user_id", uid).eq("id", id).maybeSingle();
+  if (error) fail("getShoppingRun", error);
+  return data ? (await hydrateRuns([data as Omit<ShoppingRun, "recipes">]))[0] : null;
+}
+
+export async function updateShoppingRun(
+  id: string,
+  patch: Partial<Pick<ShoppingRun, "name" | "status" | "skip_staples" | "items" | "notes" | "requested_at" | "completed_at">>,
+): Promise<ShoppingRun> {
+  const { error } = await getSupabase().from("shopping_runs").update(patch).eq("user_id", uid).eq("id", id);
+  if (error) fail("updateShoppingRun", error);
+  const run = await getShoppingRun(id);
+  if (!run) throw new Error("updateShoppingRun: run vanished");
+  return run;
+}
+
+export async function deleteShoppingRun(id: string): Promise<void> {
+  const { error } = await getSupabase().from("shopping_runs").delete().eq("user_id", uid).eq("id", id);
+  if (error) fail("deleteShoppingRun", error);
+}
+
+export async function addRecipeToShoppingRun(runId: string, recipeId: string): Promise<void> {
+  const { error } = await getSupabase()
+    .from("shopping_run_recipes")
+    .upsert({ run_id: runId, recipe_id: recipeId }, { onConflict: "run_id,recipe_id", ignoreDuplicates: true });
+  if (error) fail("addRecipeToShoppingRun", error);
+}
+
+export async function removeRecipeFromShoppingRun(runId: string, recipeId: string): Promise<void> {
+  const { error } = await getSupabase().from("shopping_run_recipes").delete().eq("run_id", runId).eq("recipe_id", recipeId);
+  if (error) fail("removeRecipeFromShoppingRun", error);
+}
+
+/** Full recipes (with ingredients) for building a run's list. */
+export async function recipesForShoppingRun(runId: string): Promise<Recipe[]> {
+  const { data, error } = await getSupabase().from("shopping_run_recipes").select("recipe_id").eq("run_id", runId).order("added_at", { ascending: true });
+  if (error) fail("recipesForShoppingRun", error);
+  const ids = ((data ?? []) as Array<{ recipe_id: string }>).map((r) => r.recipe_id);
+  return (await Promise.all(ids.map((id) => getRecipe(id)))).filter((r): r is Recipe => Boolean(r));
+}

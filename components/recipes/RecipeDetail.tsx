@@ -14,6 +14,7 @@ import { SegmentLegend, StepFacts, StepProse, type SegmentMode } from "./Segment
 import { SimilarModal } from "./SimilarModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { AddToGroup } from "@/components/groups/AddToGroup";
+import { AddToCartButton } from "@/components/shopping/AddToCartButton";
 import { useChecklist } from "@/components/ui/Checklist";
 import { addedLabel } from "@/lib/client/format";
 
@@ -24,6 +25,7 @@ interface Payload {
   ingredient_art: Record<string, IngredientArt>;
   similar: Similar[];
   group_ids: string[];
+  cart: { id: string; in_cart: boolean; count: number };
 }
 
 const TAGS_KEY = "palate.stepTags";
@@ -155,6 +157,7 @@ export function RecipeDetail({ id }: { id: string }) {
         <div className="sticky top-[4.5rem] z-20 -mx-1 mb-6 flex items-center justify-between gap-2 border-b border-line bg-bg/90 px-1 py-2 backdrop-blur">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink"><ArrowLeft size={14} /> Back to recipes</Link>
           <div className="flex items-center gap-1.5">
+            {data?.cart && <AddToCartButton recipeId={recipe.id} cartId={data.cart.id} initialInCart={data.cart.in_cart} />}
             <AddToGroup recipeId={recipe.id} initialGroupIds={data?.group_ids ?? []} />
             <button type="button" className="btn btn-icon" aria-pressed={recipe.favorite} aria-label={recipe.favorite ? "Remove from favorites" : "Add to favorites"} title={recipe.favorite ? "Favorited" : "Favorite"} onClick={() => patch({ favorite: !recipe.favorite })}>
               <Heart size={17} fill={recipe.favorite ? "currentColor" : "none"} style={{ color: recipe.favorite ? "var(--accent)" : undefined }} />

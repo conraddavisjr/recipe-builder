@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, Camera, Clock, FolderOpen, LogOut, MessageSquareText, Settings, Sparkles, UserRound, X } from "lucide-react";
+import { BookOpen, Camera, Clock, FolderOpen, LogOut, MessageSquareText, Settings, ShoppingBasket, Sparkles, UserRound, X } from "lucide-react";
 import { APP_NAME } from "@/lib/config";
 import { useShell } from "./ShellProvider";
 
@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/", label: "Recipes", hint: "Your library", icon: BookOpen },
   { href: "/profile", label: "Taste profile", hint: "What you love and avoid", icon: UserRound },
   { href: "/groups", label: "Groups", hint: "Occasions with one shopping list", icon: FolderOpen },
+  { href: "/shop", label: "Shopping", hint: "Gather a cart, let the agent shop", icon: ShoppingBasket },
   { href: "/inspirations", label: "Inspirations", hint: "Dishes you loved out", icon: Camera },
   { href: "/generator", label: "Recipe generator", hint: "Describe a craving", icon: Sparkles },
   { href: "/instructions", label: "Instructions", hint: "Truths and preferences", icon: MessageSquareText },

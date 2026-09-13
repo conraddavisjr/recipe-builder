@@ -88,6 +88,12 @@ Applied:
 - The password gate is replaced by Google sign-in through Supabase Auth with an email allowlist (`ALLOWED_EMAILS`). `proxy.ts` verifies the session and the allowlist; `/auth/callback` exchanges the OAuth code; unapproved accounts are signed out with a message. The Google OAuth client must be created in Google Cloud Console and pushed with `supabase config push`.
 - `POST /api/runs/import` lets a batch authored outside the model call enter the same pipeline (used while the Anthropic balance is empty).
 
+## Shopping (2026-09-13)
+
+- `shopping_runs` + `shopping_run_recipes`: one open gather cart, "Shop for me" freezes the consolidated list (staples separated) into a requested run, agents report per-item results via `POST /api/shopping/[id]/complete` (bearer), history with rename and "Shop this again".
+- UI: `/shop`, basket in the top bar and menu, "Add to shopping" on recipes, "Add all to shopping" on groups.
+- Fulfilment is manual-by-agent (Claude Code driving Chrome) because Amazon has no cart API; procedure in `AGENTS.md`.
+
 ## Known limitations
 
 - Image rendering is sequential per worker slice; a 5-recipe run with a cold ingredient-art cache takes 10-15 minutes locally. Concurrent slices (heartbeat plus self-kick) already overlap safely.
