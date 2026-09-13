@@ -39,6 +39,11 @@ describe("guardRecipes pregnancy_safe", () => {
     const eggy = recipe({ title: "Chocolate mousse", ingredients: [{ ingredient_key: "egg", name: "Egg whites", quantity: 3, unit: "whole", preparation: "", optional: false }] });
     expect(guardRecipes([eggFree, eggy], ctx(["pregnancy_safe"])).map((i) => i.recipe)).toEqual(["Chocolate mousse"]);
   });
+  it("treats wine vinegar as vinegar, not alcohol", () => {
+    const ok = recipe({ ingredients: [{ ingredient_key: "red_wine_vinegar", name: "Red wine vinegar", quantity: 2, unit: "tbsp", preparation: "", optional: false }] });
+    const bad = recipe({ title: "Braise", ingredients: [{ ingredient_key: "red_wine", name: "Red wine", quantity: 200, unit: "ml", preparation: "", optional: false }] });
+    expect(guardRecipes([ok, bad], ctx(["no_alcohol"])).map((i) => i.recipe)).toEqual(["Braise"]);
+  });
   it("does nothing when the absolute is not selected", () => {
     const r = recipe({ ingredients: [{ ingredient_key: "swordfish", name: "Swordfish", quantity: 1, unit: "whole", preparation: "", optional: false }] });
     expect(guardRecipes([r], ctx([]))).toEqual([]);

@@ -16,7 +16,7 @@ const GLUTEN = /\b(wheat|flour|bread|pasta|noodles?|couscous|barley|rye|seitan|s
 const NUTS = /\b(almonds?|walnuts?|pecans?|cashews?|pistachios?|hazelnuts?|peanuts?|pine nuts?|macadamia|nut butter)\b/i;
 const PORK = /\b(pork|bacon|ham|prosciutto|pancetta|chorizo|salami|pepperoni|lard)\b/i;
 const BEEF = /\b(beef|steak|brisket|veal|oxtail)\b/i;
-const ALCOHOL = /\b(wine|beer|sake|mirin|vermouth|brandy|bourbon|whisk(e)?y|rum|vodka|tequila|liqueur|marsala|sherry)\b/i;
+const ALCOHOL = /\b(wine|beer|sake|mirin|vermouth|brandy|bourbon|whisk(e)?y|rum|vodka|tequila|liqueur|marsala|sherry)\b(?!\s*vinegar)/i;
 // Pregnancy: the obvious offenders by keyword. The model review pass reads
 // the full rule list from the catalog description; this is the cheap net.
 // Techniques that always mean an undercooked egg, and dish names that only
