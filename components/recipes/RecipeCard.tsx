@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Pic } from "@/components/ui/Pic";
 import { Hand, Heart, MessageCircle, Star, Timer } from "lucide-react";
 import type { RecipeCard as RecipeCardData } from "@/lib/types";
 import { useShell } from "@/components/shell/ShellProvider";
@@ -22,8 +23,7 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
       <Link href={`/recipes/${recipe.id}`} className="block" aria-label={`View ${recipe.title}`}>
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface-2">
           {hero ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={hero.url ?? undefined} alt="" className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" loading="lazy" />
+            <Pic src={hero.url ?? ""} sizes="card" className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" />
           ) : (
             <div className={`h-full w-full ${pending ? "shimmer" : ""} grid place-items-center`}>
               {!pending && <span className="text-xs text-muted">No image</span>}

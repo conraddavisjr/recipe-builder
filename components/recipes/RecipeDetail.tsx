@@ -14,6 +14,7 @@ import { SegmentLegend, StepFacts, StepProse, type SegmentMode } from "./Segment
 import { SimilarModal } from "./SimilarModal";
 import { StepMediaControls, StepMediaFigure, pickStepMedia } from "./StepMedia";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { Pic } from "@/components/ui/Pic";
 import { AddToGroup } from "@/components/groups/AddToGroup";
 import { AddToCartButton } from "@/components/shopping/AddToCartButton";
 import { useChecklist } from "@/components/ui/Checklist";
@@ -194,8 +195,7 @@ export function RecipeDetail({ id }: { id: string }) {
         <div className="mt-8 overflow-hidden rounded-[var(--radius)] bg-surface-2">
           <div className="relative aspect-[3/2] w-full">
             {hero?.url && hero.status === "done" ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={hero.url} alt={recipe.title} className="h-full w-full object-cover" />
+              <Pic src={hero.url} sizes="hero" alt={recipe.title} loading="eager" className="h-full w-full object-cover" />
             ) : (
               <div className={`grid h-full w-full place-items-center ${hero?.status === "pending" ? "shimmer" : ""}`}>
                 <span className="text-xs text-muted">{hero?.status === "pending" ? "Photographing..." : "No image"}</span>
@@ -208,8 +208,7 @@ export function RecipeDetail({ id }: { id: string }) {
             {images.map((img, i) => (
               <button key={img.id} type="button" onClick={() => setActiveImage(i)} aria-label={`View ${img.kind} image`} aria-pressed={i === activeImage} className="h-16 w-24 overflow-hidden rounded-lg border-2 transition" style={{ borderColor: i === activeImage ? "var(--ink)" : "transparent" }}>
                 {img.url && img.status === "done" ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={img.url} alt="" className="h-full w-full object-cover" />
+                  <Pic src={img.url} sizes="thumb" className="h-full w-full object-cover" />
                 ) : (
                   <span className="shimmer block h-full w-full" />
                 )}
@@ -351,8 +350,7 @@ export function RecipeDetail({ id }: { id: string }) {
                     <Link href={`/recipes/${s.id}`} className="group flex items-center gap-3 py-3">
                       <span className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-surface-2">
                         {thumb ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={thumb.url ?? undefined} alt="" className="h-full w-full object-cover" />
+                          <Pic src={thumb.url ?? ""} sizes="thumb" className="h-full w-full object-cover" />
                         ) : null}
                       </span>
                       <span className="min-w-0 flex-1">

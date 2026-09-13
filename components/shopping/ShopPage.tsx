@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { Pic } from "@/components/ui/Pic";
 import { Check, ChevronDown, LoaderCircle, Pencil, RotateCcw, ShoppingBasket, Sparkles, X } from "lucide-react";
 import type { ShoppingRun } from "@/lib/db";
 import type { ShoppingItem } from "@/lib/shopping";
@@ -152,8 +153,7 @@ export function ShopPage() {
                   <li key={r.id} className="flex items-center gap-4 py-3">
                     <Link href={`/recipes/${r.id}`} className="h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-tint">
                       {thumb ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={thumb.url ?? undefined} alt="" className="h-full w-full object-cover" />
+                        <Pic src={thumb.url ?? ""} sizes="thumb" className="h-full w-full object-cover" />
                       ) : null}
                     </Link>
                     <span className="min-w-0 flex-1">

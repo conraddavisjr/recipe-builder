@@ -120,3 +120,11 @@ Verified:
 
 Not yet verified:
 - A `sora-2` clip end to end (pipeline built; first film run is the person's call because of cost).
+
+## Responsive images (2026-09-13)
+
+Built:
+- `lib/imageSizes.ts` (pure, tested): native widths, variant widths per kind, `variantPath`, `srcSetFor`, `imagePathsFor`, and `sizes` presets per slot (card, hero, step, thumb, art).
+- `lib/images/resize.ts`: sharp variants; `uploadImageSet` in the handlers writes native + variants for recipe photos, step stills and ingredient art. `deleteRecipes` removes variants too.
+- `components/ui/Pic.tsx` replaces every generated-image `<img>` (cards, hero and gallery thumbs, similar rows, group covers and rows, shopping rows, step figures, ingredient tiles). Inspiration photos are user uploads behind signed URLs and stay as they were.
+- `scripts/backfill-image-sizes.mjs`: idempotent one-time variant generation for existing storage objects (run once against the hosted project).

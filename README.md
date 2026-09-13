@@ -144,6 +144,7 @@ lib/jobs/*                Postgres task queue drained by POST /api/worker in bou
 - `lib/schemas.ts` defines every shape that crosses a boundary (model output, API input, jsonb columns); `lib/types.ts` infers types from it.
 - `lib/catalog/` is the preference vocabulary shown by the wizard and sent to the model.
 - `lib/icons.ts` is the iconography taxonomy: step segments, equipment, ingredients, filter groups and options.
+- `lib/imageSizes.ts` is the responsive image contract: every generated picture is stored at its native size plus narrower variants (`photo@480.webp`, `photo@960.webp`; `art@96.webp`, `art@192.webp`), written by the worker with sharp right after generation, and `components/ui/Pic.tsx` emits the matching `srcset` and `sizes` so a phone pulls a 480px file for a card and a 44px ingredient tile never fetches a 1024px illustration. `scripts/backfill-image-sizes.mjs` adds variants to images that predate them.
 - `proxy.ts` is the sign-in gate: Google sign-in through Supabase Auth, with a manually approved email allowlist (`ALLOWED_EMAILS`); the worker, cron and import endpoints use bearer secrets instead.
 
 ### Background work

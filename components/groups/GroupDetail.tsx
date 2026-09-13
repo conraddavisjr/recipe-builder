@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { Pic } from "@/components/ui/Pic";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, LoaderCircle, RotateCcw, ShoppingBasket, Trash, X } from "lucide-react";
 import type { GroupRow } from "@/lib/db";
@@ -99,8 +100,7 @@ export function GroupDetail({ id }: { id: string }) {
                   <li key={r.id} className="flex items-center gap-4 py-3">
                     <Link href={`/recipes/${r.id}`} className="h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-tint">
                       {thumb ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={thumb.url ?? undefined} alt="" className="h-full w-full object-cover" />
+                        <Pic src={thumb.url ?? ""} sizes="thumb" className="h-full w-full object-cover" />
                       ) : null}
                     </Link>
                     <span className="min-w-0 flex-1">

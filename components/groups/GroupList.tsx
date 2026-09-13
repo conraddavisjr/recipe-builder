@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Pic } from "@/components/ui/Pic";
 import { FolderOpen, LoaderCircle, Plus } from "lucide-react";
 import type { GroupRow } from "@/lib/db";
 import { api } from "@/lib/client/api";
@@ -69,8 +70,7 @@ export function GroupList() {
                       <span className="col-span-2 grid place-items-center text-muted"><FolderOpen size={20} /></span>
                     ) : (
                       g.covers.map((url, i) => (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img key={i} src={url} alt="" className={`h-full w-full object-cover ${g.covers.length === 1 ? "col-span-2" : ""}`} />
+                        <Pic key={i} src={url} sizes="thumb" className={`h-full w-full object-cover ${g.covers.length === 1 ? "col-span-2" : ""}`} />
                       ))
                     )}
                   </span>

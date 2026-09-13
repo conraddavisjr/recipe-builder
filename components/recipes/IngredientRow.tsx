@@ -3,6 +3,7 @@
 import { createElement } from "react";
 import { ingredientIcon } from "@/lib/icons";
 import type { Ingredient, IngredientArt } from "@/lib/types";
+import { Pic } from "@/components/ui/Pic";
 
 export function formatQuantity(q: number | null, scale: number): string {
   if (q === null) return "";
@@ -42,8 +43,7 @@ export function IngredientRow({
         )}
         <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg bg-white" style={{ boxShadow: "inset 0 0 0 1px var(--line)" }}>
           {art?.url && art.status === "done" ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={art.url} alt="" className="h-full w-full object-cover" loading="lazy" />
+            <Pic src={art.url} kind="art" sizes="art" className="h-full w-full object-cover" />
           ) : (
             <span className={art?.status === "pending" ? "shimmer grid h-full w-full place-items-center" : "text-muted"}>
               {createElement(ingredientIcon(ingredient.ingredient_key), { size: 18, strokeWidth: 1.75, className: "text-muted" })}

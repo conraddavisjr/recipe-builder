@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Clapperboard, Image as ImageIcon, LoaderCircle } from "lucide-react";
 import type { StepMedia, StepMediaKind } from "@/lib/types";
+import { Pic } from "@/components/ui/Pic";
 
 /**
  * Visuals for the method: one still or one short clip per step, shown
@@ -39,8 +40,7 @@ export function StepMediaFigure({ media, title }: { media: StepMedia; title: str
   }
   return (
     <figure className="step-media mt-4">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={media.url} alt={`Step ${media.step_number}: ${title}`} loading="lazy" />
+      <Pic src={media.url} sizes="step" alt={`Step ${media.step_number}: ${title}`} />
     </figure>
   );
 }

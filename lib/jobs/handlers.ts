@@ -2,6 +2,8 @@ import { generateRecipes } from "@/lib/ai/generateRecipes";
 import { analyzeInspiration, reanalyzeIngredients } from "@/lib/ai/analyzeInspiration";
 import { generateFoodPhoto, generateIngredientArt, generateStepStill, ingredientArtPrompt } from "@/lib/ai/images";
 import { downloadStepClip, pollStepClip, startStepClip, type ClipSeconds } from "@/lib/ai/video";
+import { makeVariants } from "@/lib/images/resize";
+import { variantPath, type ImageKind } from "@/lib/imageSizes";
 import type { GenerationMode } from "@/lib/ai/context";
 import { config } from "@/lib/config";
 import * as db from "@/lib/db";
@@ -17,6 +19,19 @@ import { gatherContext } from "./gather";
 type Handler = (task: Task) => Promise<void>;
 
 const IMAGE_KINDS: RecipeImage["kind"][] = ["hero", "angle", "plated"];
+
+/**
+ * Store a generated image at its native size plus the narrower variants
+ * the UI's srcset asks for. Returns the native path, which is what the
+ * database row records; variant paths derive from it.
+ */
+async function uploadImageSet(bucket: string, path: string, bytes: Uint8Array, contentType: string, kind: ImageKind): Promise<string> {
+  await db.uploadBytes(bucket, path, bytes, contentType);
+  for (const v of await makeVariants(bytes, kind)) {
+    await db.uploadBytes(bucket, variantPath(path, v.width), v.bytes, "image/webp");
+  }
+  return path;
+}
 
 const generate_recipes: Handler = async (task) => {
   const runId = String(task.payload.run_id);
@@ -50,7 +65,7 @@ const render_recipe_image: Handler = async (task) => {
   const prompt = String(task.payload.prompt);
   try {
     const image = await generateFoodPhoto(prompt);
-    const path = await db.uploadBytes(config.buckets.recipeImages, `recipes/${recipeId}/${imageId}.webp`, image.bytes, image.contentType);
+    const path = await uploadImageSet(config.buckets.recipeImages, `recipes/${recipeId}/${imageId}.webp`, image.bytes, image.contentType, "photo");
     await db.markRecipeImage(imageId, { storage_path: path, status: "done", error: null });
   } catch (err) {
     if (task.attempts >= task.max_attempts) {
@@ -65,7 +80,7 @@ const render_ingredient_art: Handler = async (task) => {
   const displayName = String(task.payload.display_name ?? key);
   try {
     const image = await generateIngredientArt(displayName);
-    const path = await db.uploadBytes(config.buckets.ingredientArt, `ingredients/${key}.webp`, image.bytes, image.contentType);
+    const path = await uploadImageSet(config.buckets.ingredientArt, `ingredients/${key}.webp`, image.bytes, image.contentType, "art");
     await db.markIngredientArt(key, { storage_path: path, status: "done", error: null });
   } catch (err) {
     if (task.attempts >= task.max_attempts) {
@@ -115,7 +130,7 @@ const render_step_image: Handler = async (task) => {
   if (!media) return; // the recipe or the row is gone; nothing to render
   try {
     const image = await generateStepStill(media.prompt);
-    const path = await db.uploadBytes(config.buckets.recipeImages, `steps/${media.recipe_id}/${media.step_number}.webp`, image.bytes, image.contentType);
+    const path = await uploadImageSet(config.buckets.recipeImages, `steps/${media.recipe_id}/${media.step_number}.webp`, image.bytes, image.contentType, "photo");
     await db.markStepMedia(mediaId, { storage_path: path, status: "done", error: null });
   } catch (err) {
     if (task.attempts >= task.max_attempts) {

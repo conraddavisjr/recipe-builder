@@ -1,4 +1,5 @@
 import { getSupabase } from "@/lib/supabase/server";
+import { imagePathsFor } from "@/lib/imageSizes";
 import { LOCAL_USER_ID, config } from "@/lib/config";
 import type {
   GeneratedRecipe,
@@ -524,10 +525,13 @@ export async function deleteRecipes(ids: string[]): Promise<void> {
   if (ids.length === 0) return;
   const sb = getSupabase();
   const { data: images } = await sb.from("recipe_images").select("storage_path").in("recipe_id", ids);
-  const paths = ((images ?? []) as Array<{ storage_path: string | null }>).map((i) => i.storage_path).filter((p): p is string => Boolean(p));
-  const { data: media } = await sb.from("step_media").select("storage_path, poster_path").in("recipe_id", ids);
-  for (const m of (media ?? []) as Array<{ storage_path: string | null; poster_path: string | null }>) {
-    if (m.storage_path) paths.push(m.storage_path);
+  const paths = ((images ?? []) as Array<{ storage_path: string | null }>)
+    .map((i) => i.storage_path)
+    .filter((p): p is string => Boolean(p))
+    .flatMap((p) => imagePathsFor(p, "photo"));
+  const { data: media } = await sb.from("step_media").select("kind, storage_path, poster_path").in("recipe_id", ids);
+  for (const m of (media ?? []) as Array<{ kind: StepMedia["kind"]; storage_path: string | null; poster_path: string | null }>) {
+    if (m.storage_path) paths.push(...(m.kind === "image" ? imagePathsFor(m.storage_path, "photo") : [m.storage_path]));
     if (m.poster_path) paths.push(m.poster_path);
   }
   if (paths.length) await sb.storage.from(config.buckets.recipeImages).remove(paths);
