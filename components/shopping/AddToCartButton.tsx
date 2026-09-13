@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, LoaderCircle, ShoppingBasket } from "lucide-react";
 import { api } from "@/lib/client/api";
+import { announceCartChange } from "@/lib/client/cartEvents";
 
 /** Toggle a recipe in the open gather cart. */
 export function AddToCartButton({ recipeId, cartId, initialInCart }: { recipeId: string; cartId: string; initialInCart: boolean }) {
@@ -13,6 +14,7 @@ export function AddToCartButton({ recipeId, cartId, initialInCart }: { recipeId:
     try {
       await api(`/api/shopping/${cartId}/recipes`, { method: inCart ? "DELETE" : "POST", json: { recipe_id: recipeId } });
       setInCart((v) => !v);
+      announceCartChange();
     } finally {
       setBusy(false);
     }

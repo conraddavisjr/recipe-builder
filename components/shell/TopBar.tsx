@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, MessageCircle, Settings, ShoppingBasket } from "lucide-react";
+import { Menu, MessageCircle, Settings } from "lucide-react";
 import { APP_NAME } from "@/lib/config";
 import { useShell } from "./ShellProvider";
 import { CookingIndicator } from "./CookingIndicator";
+import { CartBadge } from "@/components/shopping/CartBadge";
 
 const LINKS = [
   { href: "/", label: "Recipes" },
@@ -46,9 +47,7 @@ export function TopBar() {
           <button type="button" className="btn btn-ghost btn-icon sm:hidden" aria-label="Talk to the agent" onClick={() => openDrawer()}>
             <MessageCircle size={19} />
           </button>
-          <Link href="/shop" className="btn btn-ghost btn-icon" aria-label="Shopping" title="Shopping cart and history">
-            <ShoppingBasket size={19} />
-          </Link>
+          <CartBadge />
           <button type="button" className="btn btn-ghost btn-icon" aria-label="Settings" onClick={() => setSettingsOpen(true)}>
             <Settings size={19} />
           </button>

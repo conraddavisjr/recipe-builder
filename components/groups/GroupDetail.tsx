@@ -8,6 +8,7 @@ import type { GroupRow } from "@/lib/db";
 import type { ConsolidatedLine } from "@/lib/groups";
 import type { RecipeCard as RecipeCardData } from "@/lib/types";
 import { api } from "@/lib/client/api";
+import { announceCartChange } from "@/lib/client/cartEvents";
 import { formatQuantity } from "@/components/recipes/IngredientRow";
 import { useChecklist } from "@/components/ui/Checklist";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -52,6 +53,7 @@ export function GroupDetail({ id }: { id: string }) {
     try {
       const { cart } = await api<{ cart: { id: string } }>("/api/shopping");
       for (const r of data?.recipes ?? []) await api(`/api/shopping/${cart.id}/recipes`, { method: "POST", json: { recipe_id: r.id } });
+      announceCartChange();
       router.push("/shop");
     } catch (e) {
       setError((e as Error).message);

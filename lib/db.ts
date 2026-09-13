@@ -976,3 +976,14 @@ export async function recipesForShoppingRun(runId: string): Promise<Recipe[]> {
   const ids = ((data ?? []) as Array<{ recipe_id: string }>).map((r) => r.recipe_id);
   return (await Promise.all(ids.map((id) => getRecipe(id)))).filter((r): r is Recipe => Boolean(r));
 }
+
+/** Recipes in the open gather cart, for the top-bar badge (no cart is created if none exists). */
+export async function countGatheringRecipes(): Promise<number> {
+  const sb = getSupabase();
+  const { data, error } = await sb.from("shopping_runs").select("id").eq("user_id", uid).eq("status", "gathering").order("created_at", { ascending: false }).limit(1).maybeSingle();
+  if (error) fail("countGatheringRecipes", error);
+  if (!data) return 0;
+  const { count, error: cErr } = await sb.from("shopping_run_recipes").select("recipe_id", { count: "exact", head: true }).eq("run_id", (data as { id: string }).id);
+  if (cErr) fail("countGatheringRecipes.count", cErr);
+  return count ?? 0;
+}

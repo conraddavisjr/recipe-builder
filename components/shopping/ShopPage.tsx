@@ -7,6 +7,7 @@ import type { ShoppingRun } from "@/lib/db";
 import type { ShoppingItem } from "@/lib/shopping";
 import { summarize } from "@/lib/shopping";
 import { api } from "@/lib/client/api";
+import { announceCartChange } from "@/lib/client/cartEvents";
 import { addedLabel } from "@/lib/client/format";
 import { formatQuantity } from "@/components/recipes/IngredientRow";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -56,6 +57,7 @@ export function ShopPage() {
     try {
       await api(`/api/shopping/${data.cart.id}/recipes`, { method: "DELETE", json: { recipe_id: recipeId } });
       await load();
+      announceCartChange();
     } finally {
       setBusy(null);
     }
@@ -86,6 +88,7 @@ export function ShopPage() {
       setConfirm(false);
       setName("");
       await load();
+      announceCartChange();
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -98,6 +101,7 @@ export function ShopPage() {
     try {
       await api(`/api/shopping/${runId}/again`, { method: "POST" });
       await load();
+      announceCartChange();
       window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setBusy(null);
