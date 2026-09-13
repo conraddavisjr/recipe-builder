@@ -47,7 +47,7 @@ export function ShopPage() {
   const live = data?.history.some((r) => r.status === "requested" || r.status === "shopping") ?? false;
   useEffect(() => {
     if (!live) return;
-    const t = setInterval(load, 6000);
+    const t = setInterval(load, 2000);
     return () => clearInterval(t);
   }, [live, load]);
 
@@ -113,9 +113,12 @@ export function ShopPage() {
   const { cart, history } = data;
   const toBuy = cart.items.filter((i) => i.status === "pending");
   const staples = cart.items.filter((i) => i.staple);
+  const liveRuns = history.filter((r) => r.status === "requested" || r.status === "shopping");
+  const pastRuns = history.filter((r) => r.status === "done" || r.status === "failed");
 
   return (
     <div className="space-y-12">
+      {liveRuns.map((r) => <LiveRun key={r.id} run={r} />)}
       {/* Gather cart */}
       <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="min-w-0">
@@ -192,11 +195,11 @@ export function ShopPage() {
       <section>
         <p className="eyebrow">History</p>
         <h2 className="display display-md mt-2">Past trips</h2>
-        {history.length === 0 ? (
-          <p className="mt-3 text-sm text-muted">No trips yet. Your first “Shop for me” will appear here with what was added.</p>
+        {pastRuns.length === 0 ? (
+          <p className="mt-3 text-sm text-muted">No completed trips yet. Each finished “Shop for me” lands here with what was added.</p>
         ) : (
           <ul className="mt-4 space-y-3">
-            {history.map((run) => <HistoryRow key={run.id} run={run} onAgain={() => shopAgain(run.id)} onChanged={load} busy={busy === run.id} />)}
+            {pastRuns.map((run) => <HistoryRow key={run.id} run={run} onAgain={() => shopAgain(run.id)} onChanged={load} busy={busy === run.id} />)}
           </ul>
         )}
       </section>
@@ -214,20 +217,84 @@ export function ShopPage() {
   );
 }
 
+const DOT: Record<ShoppingItem["status"], { color: string; label: string; ring?: boolean }> = {
+  pending: { color: "var(--line-strong)", label: "Not started" },
+  working: { color: "var(--gold)", label: "Searching", ring: true },
+  added: { color: "#3f9a5a", label: "Added to cart" },
+  attention: { color: "#e08a2e", label: "Added, needs your attention" },
+  not_found: { color: "#c9432b", label: "Unavailable" },
+  skipped: { color: "var(--muted)", label: "Skipped" },
+  have_it: { color: "var(--line-strong)", label: "Assumed on hand" },
+};
+
+function StatusDot({ status }: { status: ShoppingItem["status"] }) {
+  const d = DOT[status];
+  return (
+    <span className="relative mt-1.5 inline-grid h-2.5 w-2.5 shrink-0 place-items-center" title={d.label} aria-label={d.label}>
+      {d.ring && <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60" style={{ background: d.color }} />}
+      <span className="relative inline-block h-2.5 w-2.5 rounded-full" style={{ background: d.color }} />
+    </span>
+  );
+}
+
 function ItemRow({ item }: { item: ShoppingItem }) {
   const qty = formatQuantity(item.quantity, 1);
-  const color = item.status === "added" ? "var(--olive-deep)" : item.status === "not_found" ? "var(--accent)" : item.status === "skipped" || item.status === "have_it" ? "var(--muted)" : "var(--ink)";
+  const done = item.status === "added" || item.status === "have_it" || item.status === "skipped";
   return (
-    <li className="flex items-start gap-2 py-2">
-      <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ background: color }} aria-hidden />
-      <span className="min-w-0 flex-1 leading-tight">
-        <span className="font-medium">{item.name}</span>
+    <li className="flex items-start gap-2.5 py-2">
+      <StatusDot status={item.status} />
+      <span className="min-w-0 flex-1 leading-tight" style={{ opacity: item.status === "have_it" ? 0.6 : 1 }}>
+        <span className={`font-medium ${done && item.status !== "added" ? "text-muted" : ""}`}>{item.name}</span>
         {(qty || item.unit) && <span className="ml-1.5 text-xs text-muted tabular-nums">{qty} {item.unit}</span>}
         {item.optional && <span className="ml-1.5 text-xs text-muted">optional</span>}
         {item.product && <span className="block text-xs text-muted">→ {item.product}</span>}
-        {item.note && <span className="block text-xs text-muted">{item.note}</span>}
+        {item.note && (
+          <span className="block text-xs" style={{ color: item.status === "attention" ? "#b8701f" : item.status === "not_found" ? "#c9432b" : "var(--muted)" }}>
+            {item.note}
+          </span>
+        )}
       </span>
     </li>
+  );
+}
+
+function Legend() {
+  const order: ShoppingItem["status"][] = ["pending", "working", "added", "attention", "not_found", "skipped"];
+  return (
+    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted" aria-label="Status legend">
+      {order.map((st) => (
+        <li key={st} className="inline-flex items-center gap-1.5">
+          <span className="inline-block h-2 w-2 rounded-full" style={{ background: DOT[st].color }} />
+          {DOT[st].label}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** The run being fulfilled right now: every item with its live state. */
+function LiveRun({ run }: { run: ShoppingRun }) {
+  const s = summarize(run.items);
+  const total = run.items.filter((i) => i.status !== "have_it").length;
+  const finished = s.added + s.attention + s.not_found + s.skipped;
+  return (
+    <section className="card section-card" aria-live="polite">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="eyebrow">{run.status === "requested" ? "Waiting for the agent" : "Shopping now"}</p>
+          <h2 className="display mt-2 text-2xl">{run.name || "Untitled trip"}</h2>
+          <p className="mt-1 text-xs text-muted">{finished} of {total} items handled{s.attention ? ` · ${s.attention} need your attention` : ""}{s.not_found ? ` · ${s.not_found} unavailable` : ""}</p>
+        </div>
+        <span className="inline-flex items-center gap-2 text-sm text-muted"><LoaderCircle size={15} className="animate-spin" /> updates every few seconds</span>
+      </div>
+      <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full" style={{ background: "var(--tint)" }}>
+        <div className="h-full rounded-full transition-all" style={{ width: `${total ? Math.round((finished / total) * 100) : 0}%`, background: "var(--ink)" }} />
+      </div>
+      <div className="mt-3"><Legend /></div>
+      <ul className="mt-4 grid gap-x-8 sm:grid-cols-2 text-sm">
+        {run.items.filter((i) => i.status !== "have_it").map((l) => <ItemRow key={`${l.ingredient_key}|${l.unit}`} item={l} />)}
+      </ul>
+    </section>
   );
 }
 
@@ -258,7 +325,7 @@ function HistoryRow({ run, onAgain, onChanged, busy }: { run: ShoppingRun; onAga
             )}
             <span className="block text-xs text-muted">
               {STATUS_LABEL[run.status]} · {run.recipes.length} recipe{run.recipes.length === 1 ? "" : "s"} · {addedLabel(run.requested_at ?? run.created_at)}
-              {run.status === "done" && ` · ${s.added} added${s.not_found ? `, ${s.not_found} not found` : ""}${s.skipped ? `, ${s.skipped} skipped` : ""}`}
+              {run.status === "done" && ` · ${s.added + s.attention} added${s.attention ? ` (${s.attention} to check)` : ""}${s.not_found ? `, ${s.not_found} unavailable` : ""}${s.skipped ? `, ${s.skipped} skipped` : ""}`}
             </span>
           </span>
           {live && <LoaderCircle size={15} className="animate-spin text-muted" />}
@@ -275,6 +342,7 @@ function HistoryRow({ run, onAgain, onChanged, busy }: { run: ShoppingRun; onAga
         <div className="border-t border-line px-4 py-4">
           <p className="text-xs text-muted">{run.recipes.map((r) => r.title).join(" · ")}</p>
           {run.notes && <p className="mt-2 text-sm">{run.notes}</p>}
+          <div className="mt-3"><Legend /></div>
           <ul className="mt-3 grid gap-x-8 sm:grid-cols-2 text-sm">
             {run.items.map((l) => <ItemRow key={`${l.ingredient_key}|${l.unit}`} item={l} />)}
           </ul>

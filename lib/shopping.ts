@@ -24,7 +24,16 @@ export function isStaple(ingredientKey: string): boolean {
   return STAPLE_PATTERNS.some((p) => p.test(key));
 }
 
-export type ShoppingItemStatus = "pending" | "added" | "skipped" | "not_found" | "have_it";
+/**
+ * pending    not started (gray)
+ * working    the agent is searching for it right now (pulsing ring)
+ * added      in the cart as specified (green)
+ * attention  in the cart, but something needs your eye: quantity, substitution (orange, with a note)
+ * not_found  unavailable or no sensible match (red)
+ * skipped    deliberately left out (gray, with a note)
+ * have_it    pantry staple assumed on hand (gray)
+ */
+export type ShoppingItemStatus = "pending" | "working" | "added" | "attention" | "skipped" | "not_found" | "have_it";
 
 export interface ShoppingItem extends ConsolidatedLine {
   staple: boolean;
@@ -50,8 +59,8 @@ export function autoRunName(titles: string[], date = new Date()): string {
   return titles.length === 1 ? `${short} · ${when}` : `${short} + ${titles.length - 1} more · ${when}`;
 }
 
-export function summarize(items: ShoppingItem[]): { added: number; skipped: number; not_found: number; have_it: number; pending: number } {
-  const s = { added: 0, skipped: 0, not_found: 0, have_it: 0, pending: 0 };
+export function summarize(items: ShoppingItem[]): Record<ShoppingItemStatus, number> {
+  const s: Record<ShoppingItemStatus, number> = { pending: 0, working: 0, added: 0, attention: 0, skipped: 0, not_found: 0, have_it: 0 };
   for (const i of items) s[i.status]++;
   return s;
 }

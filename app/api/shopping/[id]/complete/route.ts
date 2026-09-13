@@ -8,7 +8,7 @@ import type { ShoppingItem } from "@/lib/shopping";
 const Result = z.object({
   ingredient_key: z.string(),
   unit: z.string().optional(),
-  status: z.enum(["added", "skipped", "not_found", "have_it", "pending"]),
+  status: z.enum(["pending", "working", "added", "attention", "skipped", "not_found", "have_it"]),
   product: z.string().max(300).optional(),
   note: z.string().max(500).optional(),
 });
@@ -20,8 +20,10 @@ const Input = z.object({
 
 /**
  * POST /api/shopping/:id/complete (Bearer WORKER_SECRET)
- * The fulfilling agent reports progress: status "shopping" while working,
- * then "done" or "failed" with per-item results merged into the frozen list.
+ * The fulfilling agent reports progress incrementally: status "shopping"
+ * with one or more item results as it goes (mark an item "working" before
+ * searching, then its outcome), then "done" or "failed". Results merge into
+ * the frozen list, so the page can show live per-item progress.
  */
 export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
   if (!bearerMatches(request, config.workerSecret)) return apiError("Unauthorized", 401);

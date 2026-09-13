@@ -25,7 +25,7 @@ Conventions that are deliberate:
 The app has no grocery API. "Shop for me" creates a `shopping_runs` row with status `requested` and a frozen `items` list. An agent with browser access fulfils it:
 
 1. `GET /api/shopping` (signed in) or query `shopping_runs where status='requested'`; read `items` (skip lines whose status is `have_it`).
-2. `POST /api/shopping/<id>/complete` with `Authorization: Bearer $WORKER_SECRET` and `{"status":"shopping"}` so the page shows progress.
+2. `POST /api/shopping/<id>/complete` with `Authorization: Bearer $WORKER_SECRET` and `{"status":"shopping"}` to start. Then, per item, post `{"status":"shopping","results":[{"ingredient_key":"...","unit":"...","status":"working"}]}` before searching and the outcome right after (`added`, `attention` with a `note` such as "recipe wants 1 lb, only 0.75 lb packs; added one", `not_found`, or `skipped`). The page polls every 2 seconds and shows each item's state.
 3. In the person's own Chrome profile (they must already be signed in to Amazon; never enter credentials), open https://www.amazon.com/wholefoods, search each line, add the best match to the cart. Prefer Whole Foods 365 items, match the unit and quantity, and note substitutions.
 4. Report with `{"status":"done","results":[{"ingredient_key":"...","unit":"...","status":"added|skipped|not_found","product":"...","note":"..."}],"notes":"..."}`. Use `failed` with `notes` if the run cannot be completed.
 5. Never place the order. The person reviews the cart and checks out.
