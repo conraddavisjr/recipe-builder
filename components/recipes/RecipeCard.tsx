@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Heart, MessageCircle, Star, Timer } from "lucide-react";
+import { Hand, Heart, MessageCircle, Star, Timer } from "lucide-react";
 import type { RecipeCard as RecipeCardData } from "@/lib/types";
 import { useShell } from "@/components/shell/ShellProvider";
 import { addedLabel } from "@/lib/client/format";
@@ -46,8 +46,14 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
         </Link>
         <p className="line-clamp-2 text-sm leading-relaxed text-muted">{recipe.summary_poetic}</p>
         <div className="mt-auto flex items-center gap-3 border-t border-line pt-3 text-xs text-muted">
-          <span className="inline-flex items-center gap-1"><Timer size={13} /> {recipe.total_minutes} min</span>
-          <span>{recipe.servings} servings</span>
+          {/* Hands-on time first and in ink: it is the number that decides a weeknight. */}
+          <span className="inline-flex items-center gap-1 font-medium text-ink" title={`${recipe.active_minutes} min of your time (hands-on)`}>
+            <Hand size={13} /> {recipe.active_minutes} min
+          </span>
+          <span className="inline-flex items-center gap-1" title={`${recipe.total_minutes} min start to finish, including unattended time`}>
+            <Timer size={13} /> {recipe.total_minutes} min
+          </span>
+          <span>{recipe.servings} serv.</span>
           {recipe.rating && <span className="inline-flex items-center gap-0.5"><Star size={12} fill="currentColor" style={{ color: "var(--gold)" }} /> {recipe.rating}</span>}
           <span className="ml-auto" title={`Added ${new Date(recipe.created_at).toLocaleString()}`}>{addedLabel(recipe.created_at)}</span>
           <button

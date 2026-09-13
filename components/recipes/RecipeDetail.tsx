@@ -199,7 +199,7 @@ export function RecipeDetail({ id }: { id: string }) {
 
         {/* 3. Stats strip: every taxonomy value as text, no pills */}
         <dl className="stats mt-8">
-          <Stat label="Active" value={`${recipe.active_minutes} min`} />
+          <Stat label="Hands-on" value={`${recipe.active_minutes} min`} />
           <Stat label="Total" value={`${recipe.total_minutes} min`} />
           <Stat label="Serves" value={String(recipe.servings)} />
           <Stat label="Effort" value={recipe.difficulty} />
@@ -329,7 +329,9 @@ export function RecipeDetail({ id }: { id: string }) {
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="display block text-base leading-snug group-hover:underline">{s.title}</span>
-                        <span className="mt-0.5 block text-xs text-muted">{s.cuisine} · {s.total_minutes} min</span>
+                        <span className="mt-0.5 block text-xs text-muted" title={`${s.active_minutes} min hands-on, ${s.total_minutes} min total`}>
+                          {s.cuisine} · {s.active_minutes} min hands-on · {s.total_minutes} total
+                        </span>
                       </span>
                       <ArrowUpRight size={14} className="shrink-0 text-muted" />
                     </Link>

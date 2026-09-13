@@ -91,7 +91,7 @@ export function GroupDetail({ id }: { id: string }) {
                     </Link>
                     <span className="min-w-0 flex-1">
                       <Link href={`/recipes/${r.id}`} className="display block text-lg leading-snug hover:underline">{r.title}</Link>
-                      <span className="text-xs text-muted">{r.cuisine} · {r.total_minutes} min · {r.servings} servings · {r.ingredients.length} ingredients</span>
+                      <span className="text-xs text-muted">{r.cuisine} · {r.active_minutes} min hands-on · {r.total_minutes} total · {r.servings} servings · {r.ingredients.length} ingredients</span>
                     </span>
                     <button type="button" className="btn btn-ghost btn-icon" aria-label={`Remove ${r.title} from group`} disabled={busy !== null} onClick={() => removeRecipe(r.id)}>
                       {busy === r.id ? <LoaderCircle size={14} className="animate-spin" /> : <X size={15} />}
