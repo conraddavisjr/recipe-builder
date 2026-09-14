@@ -3,7 +3,7 @@ import { handle } from "@/lib/api";
 import * as db from "@/lib/db";
 
 /**
- * GET /api/recipes?q=&cuisine=&dish_type=&health_profile=&presentation=&source=&favorites=1&sort=
+ * GET /api/recipes?q=&cuisine=&dish_type=&health_profile=&presentation=&source=&favorites=1&pregnancy_safe=1&sort=
  * -> { recipes, active_runs, drafts } (drafts = generator candidates not yet kept)
  */
 export async function GET(request: Request) {
@@ -19,6 +19,7 @@ export async function GET(request: Request) {
         presentation: pick("presentation"),
         source: pick("source") as "autonomous" | "generator" | "similar" | "inspiration" | undefined,
         favorites: p.get("favorites") === "1",
+        pregnancy_safe: p.get("pregnancy_safe") === "1",
         sort: (pick("sort") as "newest" | "oldest" | "title" | "quickest" | undefined) ?? "newest",
       }),
       db.listActiveRuns(),

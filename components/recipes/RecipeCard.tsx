@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Pic } from "@/components/ui/Pic";
+import { PregnancyIcon } from "@/components/ui/PregnancyIcon";
 import { Hand, Heart, MessageCircle, Star, Timer } from "lucide-react";
 import type { RecipeCard as RecipeCardData } from "@/lib/types";
 import { useShell } from "@/components/shell/ShellProvider";
@@ -34,7 +35,14 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
               <Heart size={14} fill="currentColor" style={{ color: "var(--accent)" }} />
             </span>
           )}
-          {recipe.status === "candidate" && <span className="badge absolute left-3 top-3 bg-surface/90">Draft</span>}
+          <span className="absolute left-3 top-3 flex items-center gap-1.5">
+            {recipe.status === "candidate" && <span className="badge bg-surface/90">Draft</span>}
+            {recipe.pregnancy_safe && (
+              <span className="safe-mark" title="Pregnancy safe: cooked through, no soft or unpasteurized cheese, no alcohol, no high-mercury fish" aria-label="Pregnancy safe">
+                <PregnancyIcon size={14} />
+              </span>
+            )}
+          </span>
         </div>
       </Link>
       <div className="flex flex-1 flex-col gap-2 p-5">

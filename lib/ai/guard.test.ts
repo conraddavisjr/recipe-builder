@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { guardRecipes } from "./guard";
+import { guardRecipes, isPregnancySafe } from "./guard";
 import type { RecommendationContext } from "./context";
 import type { GeneratedRecipe } from "@/lib/types";
 
@@ -47,5 +47,21 @@ describe("guardRecipes pregnancy_safe", () => {
   it("does nothing when the absolute is not selected", () => {
     const r = recipe({ ingredients: [{ ingredient_key: "swordfish", name: "Swordfish", quantity: 1, unit: "whole", preparation: "", optional: false }] });
     expect(guardRecipes([r], ctx([]))).toEqual([]);
+  });
+});
+
+describe("isPregnancySafe", () => {
+  const base = { title: "Test", steps: [{ number: 1, title: "Cook", segments: [{ kind: "text" as const, text: "Cook it through." }] }] };
+  const ing = (name: string, preparation = "") => ({ ingredient_key: name, name, quantity: 1, unit: "", preparation, optional: false });
+  it("passes a fully cooked dish with pasteurized cheese", () => {
+    expect(isPregnancySafe({ ...base, ingredients: [ing("Chicken thighs"), ing("Feta", "pasteurized, crumbled")] })).toBe(true);
+  });
+  it("fails soft cheese that is not marked pasteurized", () => {
+    expect(isPregnancySafe({ ...base, ingredients: [ing("Feta", "crumbled")] })).toBe(false);
+  });
+  it("fails jammy eggs, sake and swordfish", () => {
+    expect(isPregnancySafe({ ...base, ingredients: [ing("Eggs")], steps: [{ number: 1, title: "Jammy eggs", segments: [{ kind: "text", text: "Boil 6 minutes." }] }] })).toBe(false);
+    expect(isPregnancySafe({ ...base, ingredients: [ing("Sake")] })).toBe(false);
+    expect(isPregnancySafe({ ...base, ingredients: [ing("Swordfish steaks")] })).toBe(false);
   });
 });

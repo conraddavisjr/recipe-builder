@@ -118,6 +118,8 @@ export interface Recipe extends GeneratedRecipe {
   rating: number | null;
   feedback: string | null;
   feedback_updated_at: string | null;
+  /** Deterministic verdict from lib/ai/guard.ts, stored for badges and filtering. */
+  pregnancy_safe: boolean;
   created_at: string;
   updated_at: string;
   images: RecipeImage[];

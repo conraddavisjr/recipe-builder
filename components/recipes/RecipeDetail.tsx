@@ -17,6 +17,7 @@ import { SimilarModal } from "./SimilarModal";
 import { StepMediaControls } from "./StepMedia";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Pic } from "@/components/ui/Pic";
+import { PregnancyIcon } from "@/components/ui/PregnancyIcon";
 import { AddToGroup } from "@/components/groups/AddToGroup";
 import { AddToCartButton } from "@/components/shopping/AddToCartButton";
 import { useChecklist } from "@/components/ui/Checklist";
@@ -193,7 +194,14 @@ export function RecipeDetail({ id }: { id: string }) {
 
         {/* 1. Title block: eyebrow, title, summary */}
         <header>
-          <p className="eyebrow">{recipe.cuisine} / {recipe.dish_type}</p>
+          <p className="eyebrow flex flex-wrap items-center gap-2">
+            <span>{recipe.cuisine} / {recipe.dish_type}</span>
+            {recipe.pregnancy_safe && (
+              <span className="safe-mark safe-mark-text" title="Passes the pregnancy safety check: cooked through, no soft or unpasteurized cheese, no alcohol, no high-mercury fish">
+                <PregnancyIcon size={13} /> Pregnancy safe
+              </span>
+            )}
+          </p>
           <h1 className="display mt-3 text-[2rem] leading-[1.08] sm:text-4xl lg:text-5xl">{recipe.title}</h1>
           <p className="intro mt-5 max-w-2xl">{recipe.summary_poetic}</p>
         </header>

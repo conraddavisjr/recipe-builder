@@ -1,5 +1,6 @@
 import { getSupabase } from "@/lib/supabase/server";
 import { imagePathsFor } from "@/lib/imageSizes";
+import { isPregnancySafe } from "@/lib/ai/guard";
 import { LOCAL_USER_ID, config } from "@/lib/config";
 import type {
   GeneratedRecipe,
@@ -374,11 +375,11 @@ export async function runTasksSettled(runId: string): Promise<{ settled: boolean
 // ---------------------------------------------------------------------------
 
 const RECIPE_COLS =
-  "id, run_id, title, summary_poetic, rationale, cuisine, dish_type, health_profile, presentation, tags, flavor_tags, servings, active_minutes, total_minutes, difficulty, ingredients, equipment, steps, image_prompts, source, similar_to_id, inspiration_id, status, favorite, rating, feedback, feedback_updated_at, created_at, updated_at";
+  "id, run_id, title, summary_poetic, rationale, cuisine, dish_type, health_profile, presentation, tags, flavor_tags, servings, active_minutes, total_minutes, difficulty, ingredients, equipment, steps, image_prompts, source, similar_to_id, inspiration_id, status, favorite, rating, feedback, feedback_updated_at, pregnancy_safe, created_at, updated_at";
 
 /** Card columns: everything except the heavy step/equipment/prompt content. */
 const CARD_COLS =
-  "id, run_id, title, summary_poetic, rationale, cuisine, dish_type, health_profile, presentation, tags, flavor_tags, servings, active_minutes, total_minutes, difficulty, ingredients, source, similar_to_id, inspiration_id, status, favorite, rating, feedback, feedback_updated_at, created_at, updated_at";
+  "id, run_id, title, summary_poetic, rationale, cuisine, dish_type, health_profile, presentation, tags, flavor_tags, servings, active_minutes, total_minutes, difficulty, ingredients, source, similar_to_id, inspiration_id, status, favorite, rating, feedback, feedback_updated_at, pregnancy_safe, created_at, updated_at";
 
 const IMAGE_COLS = "id, recipe_id, kind, position, prompt, storage_path, status";
 
@@ -410,12 +411,33 @@ export async function insertRecipes(
         status: meta.status,
         similar_to_id: meta.similar_to_id ?? null,
         inspiration_id: meta.inspiration_id ?? null,
+        pregnancy_safe: isPregnancySafe(g),
         ...g,
       })),
     )
     .select(RECIPE_COLS);
   if (error) fail("insertRecipes", error);
   return (data ?? []) as RecipeRow[];
+}
+
+/**
+ * Recompute the stored pregnancy verdict for every recipe. Run after the
+ * guard's rules change; returns how many rows flipped.
+ */
+export async function reindexPregnancySafe(): Promise<{ checked: number; changed: number }> {
+  const sb = getSupabase();
+  const { data, error } = await sb.from("recipes").select("id, title, ingredients, steps, pregnancy_safe").eq("user_id", uid);
+  if (error) fail("reindexPregnancySafe", error);
+  const rows = (data ?? []) as Array<Pick<Recipe, "id" | "title" | "ingredients" | "steps" | "pregnancy_safe">>;
+  let changed = 0;
+  for (const r of rows) {
+    const verdict = isPregnancySafe(r);
+    if (verdict === r.pregnancy_safe) continue;
+    const { error: upErr } = await sb.from("recipes").update({ pregnancy_safe: verdict }).eq("id", r.id);
+    if (upErr) fail("reindexPregnancySafe", upErr);
+    changed++;
+  }
+  return { checked: rows.length, changed };
 }
 
 export interface RecipeListFilters {
@@ -426,6 +448,7 @@ export interface RecipeListFilters {
   presentation?: string;
   source?: RecipeSource;
   favorites?: boolean;
+  pregnancy_safe?: boolean;
   status?: Recipe["status"] | "any";
   run_id?: string;
   sort?: "newest" | "oldest" | "title" | "quickest";
@@ -445,6 +468,7 @@ export async function listRecipeCards(filters: RecipeListFilters = {}): Promise<
   if (filters.presentation) query = query.eq("presentation", filters.presentation);
   if (filters.source) query = query.eq("source", filters.source);
   if (filters.favorites) query = query.eq("favorite", true);
+  if (filters.pregnancy_safe) query = query.eq("pregnancy_safe", true);
   if (filters.run_id) query = query.eq("run_id", filters.run_id);
   if (filters.q) {
     const term = `%${filters.q.replace(/[%_]/g, "")}%`;

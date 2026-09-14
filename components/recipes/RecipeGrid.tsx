@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PregnancyIcon } from "@/components/ui/PregnancyIcon";
 import { Check, ChevronDown, LoaderCircle, Search, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import type { RecipeCard as RecipeCardData, Run } from "@/lib/types";
@@ -37,6 +38,7 @@ export function RecipeGrid() {
   const [filters, setFilters] = useState<Partial<Record<FilterKey, string>>>({});
   const [sort, setSort] = useState("newest");
   const [favorites, setFavorites] = useState(false);
+  const [pregnancySafe, setPregnancySafe] = useState(false);
   const [openGroup, setOpenGroup] = useState<FilterKey | null>(null);
   const [vocab, setVocab] = useState<Vocab>({ cuisine: [], dish_type: [], health_profile: [], presentation: [] });
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -47,6 +49,7 @@ export function RecipeGrid() {
     if (q.trim()) params.set("q", q.trim());
     for (const [k, v] of Object.entries(filters)) if (v) params.set(k, v);
     if (favorites) params.set("favorites", "1");
+    if (pregnancySafe) params.set("pregnancy_safe", "1");
     params.set("sort", sort);
     try {
       const data = await api<{ recipes: RecipeCardData[]; active_runs: Run[]; drafts: number }>(`/api/recipes?${params}`);
@@ -57,7 +60,7 @@ export function RecipeGrid() {
     } catch (e) {
       setError((e as Error).message);
     }
-  }, [q, filters, favorites, sort]);
+  }, [q, filters, favorites, pregnancySafe, sort]);
 
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current);
@@ -98,13 +101,14 @@ export function RecipeGrid() {
   }, [openGroup]);
 
   const cooking = useMemo(() => activeRuns[0], [activeRuns]);
-  const hasAny = GROUPS.some((g) => filters[g.key]) || favorites || Boolean(q.trim());
+  const hasAny = GROUPS.some((g) => filters[g.key]) || favorites || pregnancySafe || Boolean(q.trim());
   const availableGroups = GROUPS.filter((g) => vocab[g.key].length > 0);
 
   function clearAll() {
     setQ("");
     setFilters({});
     setFavorites(false);
+    setPregnancySafe(false);
   }
 
   return (
@@ -169,6 +173,9 @@ export function RecipeGrid() {
           <option value="title">Title A to Z</option>
           <option value="quickest">Quickest first</option>
         </select>
+        <button type="button" className="chip" data-active={pregnancySafe} onClick={() => setPregnancySafe((v) => !v)} aria-pressed={pregnancySafe} title="Only recipes the safety check passes for pregnancy: everything cooked through, no soft or unpasteurized cheese, no alcohol, no high-mercury fish">
+          <PregnancyIcon size={13} /> Pregnancy safe
+        </button>
         <button type="button" className="chip" data-active={favorites} onClick={() => setFavorites((f) => !f)} aria-pressed={favorites}>
           ♥ Favorites
         </button>

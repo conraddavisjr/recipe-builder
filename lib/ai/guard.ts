@@ -31,7 +31,20 @@ const UNPASTEURIZED = /\b(unpasteuri[sz]ed|raw milk|brie|camembert|gorgonzola|ro
 const CURED_MEAT = /\b(prosciutto|salami|pepperoni|deli meats?|cold cuts|p[aâ]t[eé]|liver|jamon|jamón|bresaola)\b/i;
 const SPROUTS = /\b(raw sprouts|alfalfa|bean sprouts?)\b/i;
 
-const RULES: Record<string, { pattern: RegExp; label: string; requires?: RegExp }[]> = {
+interface Rule {
+  pattern: RegExp;
+  label: string;
+  /** Only applies when this trigger is present among the ingredients. */
+  requires?: RegExp;
+  /** Test ingredient lines one by one instead of the whole text (title, steps). */
+  scope?: "ingredients";
+  /** An ingredient line matching this is exempt ("pasteurized feta"). */
+  unless?: RegExp;
+}
+
+const PASTEURIZED = /(?<!un)pasteuri[sz]ed/i;
+
+const RULES: Record<string, Rule[]> = {
   vegetarian: [{ pattern: MEAT, label: "meat" }, { pattern: FISH, label: "fish" }, { pattern: SHELLFISH, label: "shellfish" }],
   vegan: [
     { pattern: MEAT, label: "meat" }, { pattern: FISH, label: "fish" }, { pattern: SHELLFISH, label: "shellfish" },
@@ -52,7 +65,7 @@ const RULES: Record<string, { pattern: RegExp; label: string; requires?: RegExp 
     { pattern: RAW_EGG_DISH, label: "raw or undercooked egg", requires: EGG_INGREDIENT },
     { pattern: RAW_PROTEIN, label: "raw or undercooked meat or fish" },
     { pattern: HIGH_MERCURY, label: "high-mercury fish" },
-    { pattern: UNPASTEURIZED, label: "unpasteurized or soft cheese" },
+    { pattern: UNPASTEURIZED, label: "unpasteurized or soft cheese", scope: "ingredients", unless: PASTEURIZED },
     { pattern: CURED_MEAT, label: "cured or deli meat" },
     { pattern: SPROUTS, label: "raw sprouts" },
     { pattern: ALCOHOL, label: "alcohol" },
@@ -64,6 +77,40 @@ export interface GuardIssue {
   issue: string;
 }
 
+type Checkable = Pick<GeneratedRecipe, "title" | "ingredients" | "steps">;
+
+/** Every way a recipe breaks the given dietary absolutes, by keyword. */
+export function dietIssues(r: Checkable, dietKeys: string[]): Array<{ key: string; label: string; hit: string }> {
+  const out: Array<{ key: string; label: string; hit: string }> = [];
+  const stepText = r.steps.map((st) => `${st.title} ${st.segments.map((sg) => sg.text).join(" ")}`).join(" ");
+  const ingredientLines = r.ingredients.map((i) => `${i.name} ${i.preparation}`);
+  const ingredientsOnly = ingredientLines.join(" ");
+  const ingredientText = `${ingredientsOnly} ${r.title} ${stepText}`;
+  for (const key of dietKeys) {
+    for (const rule of RULES[key] ?? []) {
+      // A "requires" rule only applies when the trigger ingredient is really present.
+      if (rule.requires && !rule.requires.test(ingredientsOnly)) continue;
+      if (rule.scope === "ingredients") {
+        const line = ingredientLines.find((l) => rule.pattern.test(l) && !(rule.unless && rule.unless.test(l)));
+        const hit = line?.match(rule.pattern);
+        if (hit) out.push({ key, label: rule.label, hit: hit[0] });
+        continue;
+      }
+      const hit = ingredientText.match(rule.pattern);
+      if (hit) out.push({ key, label: rule.label, hit: hit[0] });
+    }
+  }
+  return out;
+}
+
+/**
+ * Deterministic pregnancy verdict for the badge and the filter. Conservative
+ * on purpose: a false "not safe" costs a badge, a false "safe" costs trust.
+ */
+export function isPregnancySafe(r: Checkable): boolean {
+  return dietIssues(r, ["pregnancy_safe"]).length === 0;
+}
+
 export function guardRecipes(recipes: GeneratedRecipe[], ctx: RecommendationContext): GuardIssue[] {
   const issues: GuardIssue[] = [];
   const dietKeys = ctx.profile.diet_absolute.map((d) => d.key);
@@ -71,16 +118,8 @@ export function guardRecipes(recipes: GeneratedRecipe[], ctx: RecommendationCont
   const maxMinutes = ctx.settings.max_cook_minutes;
 
   for (const r of recipes) {
-    const stepText = r.steps.map((st) => `${st.title} ${st.segments.map((sg) => sg.text).join(" ")}`).join(" ");
-    const ingredientsOnly = r.ingredients.map((i) => `${i.name} ${i.preparation}`).join(" ");
-    const ingredientText = `${ingredientsOnly} ${r.title} ${stepText}`;
-    for (const key of dietKeys) {
-      for (const rule of RULES[key] ?? []) {
-        // A "requires" rule only applies when the trigger ingredient is really present.
-        if (rule.requires && !rule.requires.test(ingredientsOnly)) continue;
-        const hit = ingredientText.match(rule.pattern);
-        if (hit) issues.push({ recipe: r.title, issue: `contains ${rule.label} ("${hit[0]}") despite ${key}` });
-      }
+    for (const d of dietIssues(r, dietKeys)) {
+      issues.push({ recipe: r.title, issue: `contains ${d.label} ("${d.hit}") despite ${d.key}` });
     }
     const cuisine = r.cuisine.toLowerCase();
     for (const avoided of avoidCuisines) {

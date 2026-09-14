@@ -37,3 +37,7 @@ Every recipe step can carry one still or one short clip (`step_media`, rendered 
 `POST /api/step-media/import` with `Authorization: Bearer $WORKER_SECRET` and `{"recipe_id":"...","kind":"image|video","seconds":8,"prompts":[{"step_number":1,"prompt":"..."}]}`.
 
 Prompt rules: state what is already in the pan and that nothing was removed, name the tool in hand, describe the exact moment of the action, no text or labels in the picture. Stills cost cents; clips cost roughly a dollar per step on `sora-2`, so ask before filming a whole recipe.
+
+# Pregnancy verdict (agent note)
+
+`recipes.pregnancy_safe` is a stored, deterministic verdict from `isPregnancySafe` in `lib/ai/guard.ts` (badge on cards, filter in the library). It is conservative by design: soft cheese counts unless the ingredient line says "pasteurized", any sake or mirin fails it, jammy or runny eggs fail it. When you author recipes for import, write "pasteurized" on cheese and yogurt lines and cook eggs through if the dish should badge. After changing the rules run `POST /api/recipes/reindex` with the worker secret.

@@ -136,3 +136,15 @@ Built:
 - `components/recipes/StepItem.tsx` renders a step for both the page and focus mode.
 - "Show tags" chips for ingredients now carry the scaled amount ("ground cumin · 1 tsp", "garlic · 4 cloves", "salt · to taste"); `lib/ingredientMatch.ts` matches a step phrase to an ingredient (longest alias wins) and stays quiet when the phrase already states a quantity. Tested. `formatQuantity` moved to `lib/quantity.ts`.
 - Favicon is the bare olive star again (no ivory tile); the Apple touch icon keeps its opaque tile because iOS requires one.
+
+## Pregnancy-safe badge and filter (2026-09-14)
+
+Built:
+- `recipes.pregnancy_safe` (indexed) computed by `isPregnancySafe` in `lib/ai/guard.ts` when a recipe is stored; `POST /api/recipes/reindex` (worker secret) recomputes the whole library after rule changes.
+- Guard refactor: `dietIssues()` shared by the batch guard and the verdict; the soft-cheese rule now checks ingredient lines and exempts ones marked pasteurized.
+- UI: olive disc with a pregnancy silhouette on cards (top-left, beside Draft), a labelled pill under the detail title, and a "Pregnancy safe" filter chip in the library. Tested.
+- Backfilled 2026-09-14: 22 of 30 recipes pass; the 8 that do not carry jammy eggs, sake or mirin, swordfish, bean sprouts, or feta not marked pasteurized.
+
+## Step visuals for the library (2026-09-14)
+
+- 128 hand-written stills imported for the 23 saved recipes without them (0 failures); the flank steak plating frame was redone at medium-well.

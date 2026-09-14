@@ -269,6 +269,15 @@ body {
   background: var(--tint); color: var(--ink);
 }
 .badge-sm { padding: 0.4375rem 0.5625rem; font-size: 0.6875rem; }
+/* Pregnancy-safe mark: a small olive disc on cards, a pill with a label on the detail page. */
+.safe-mark {
+  display: inline-grid; place-items: center; height: 1.75rem; width: 1.75rem; border-radius: 999px;
+  background: var(--accent); color: var(--accent-ink); box-shadow: 0 1px 2px rgb(38 60 48 / 0.15);
+}
+.safe-mark-text {
+  width: auto; grid-auto-flow: column; gap: 0.3rem; padding: 0 0.625rem; height: 1.5rem;
+  font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600;
+}
 .badge-photo {
   display: inline-flex; align-items: center; gap: 0.375rem;
   border-radius: 20px; padding: 0.4375rem 0.6875rem;
