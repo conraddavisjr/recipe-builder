@@ -3,16 +3,18 @@
 import { createElement, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowUpRight, ChevronDown, Heart, LoaderCircle, Minus, Plus, Sparkles, Trash } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, ChevronDown, Heart, LoaderCircle, Maximize2, Minus, Plus, Sparkles, Trash } from "lucide-react";
 import type { IngredientArt, Recipe, RecipeCard as RecipeCardData, StepMedia, StepMediaKind } from "@/lib/types";
 import { api } from "@/lib/client/api";
 import { findCatalogItem } from "@/lib/catalog";
 import { equipmentIcon } from "@/lib/icons";
 import { useShell } from "@/components/shell/ShellProvider";
 import { IngredientRow } from "./IngredientRow";
-import { SegmentLegend, StepFacts, StepProse, type SegmentMode } from "./Segment";
+import { SegmentLegend, type SegmentMode } from "./Segment";
+import { StepItem } from "./StepItem";
+import { FocusMode } from "./FocusMode";
 import { SimilarModal } from "./SimilarModal";
-import { StepMediaControls, StepMediaFigure, pickStepMedia } from "./StepMedia";
+import { StepMediaControls } from "./StepMedia";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Pic } from "@/components/ui/Pic";
 import { AddToGroup } from "@/components/groups/AddToGroup";
@@ -50,6 +52,8 @@ export function RecipeDetail({ id }: { id: string }) {
   const checklist = useChecklist(`palate.recipe.${id}`);
   const [activeImage, setActiveImage] = useState(0);
   const [illustrating, setIllustrating] = useState(false);
+  const [focus, setFocus] = useState(false);
+  const closeFocus = useCallback(() => setFocus(false), []);
 
   // "Show tags" preference is per browser and survives reloads.
   useEffect(() => {
@@ -178,6 +182,9 @@ export function RecipeDetail({ id }: { id: string }) {
           <div className="flex items-center gap-1.5">
             {data?.cart && <AddToCartButton recipeId={recipe.id} cartId={data.cart.id} initialInCart={data.cart.in_cart} />}
             <AddToGroup recipeId={recipe.id} initialGroupIds={data?.group_ids ?? []} />
+            <button type="button" className="btn btn-icon" aria-label="Focus on the steps" title="Focus mode: just the steps, full screen" onClick={() => setFocus(true)}>
+              <Maximize2 size={17} />
+            </button>
             <button type="button" className="btn btn-icon" aria-pressed={recipe.favorite} aria-label={recipe.favorite ? "Remove from favorites" : "Add to favorites"} title={recipe.favorite ? "Favorited" : "Favorite"} onClick={() => patch({ favorite: !recipe.favorite })}>
               <Heart size={17} fill={recipe.favorite ? "currentColor" : "none"} style={{ color: recipe.favorite ? "var(--accent)" : undefined }} />
             </button>
@@ -283,6 +290,9 @@ export function RecipeDetail({ id }: { id: string }) {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="display text-2xl">Method</h2>
             <div className="flex items-center gap-2">
+              <button type="button" className="chip" onClick={() => setFocus(true)} title="Just the steps, full screen, two columns when they fit">
+                <Maximize2 size={13} /> Focus
+              </button>
               <StepMediaControls media={data.step_media} busy={illustrating} onIllustrate={illustrate} />
               <button type="button" className="chip" data-active={mode === "tagged"} aria-pressed={mode === "tagged"} onClick={toggleMode} title="Highlight every ingredient, tool, temperature, time and technique inside the steps">
                 Show tags
@@ -292,20 +302,7 @@ export function RecipeDetail({ id }: { id: string }) {
           {mode === "tagged" && <div className="mt-3"><SegmentLegend /></div>}
           <ol className="mt-6 divide-y divide-line">
             {recipe.steps.map((step) => (
-              <li key={step.number} className="flex gap-5 py-6 first:pt-0 last:pb-0">
-                <span className="display step-number">{String(step.number).padStart(2, "0")}</span>
-                <div className="min-w-0 flex-1">
-                  <h3 className="display text-xl">{step.title}</h3>
-                  {mode === "calm" && <StepFacts step={step} />}
-                  <p className={`mt-3 text-[15px] ${mode === "tagged" ? "leading-[1.9]" : "leading-[1.7]"}`}>
-                    <StepProse segments={step.segments} mode={mode} />
-                  </p>
-                  {(() => {
-                    const media = pickStepMedia(data.step_media, step.number);
-                    return media ? <StepMediaFigure media={media} title={step.title} /> : null;
-                  })()}
-                </div>
-              </li>
+              <StepItem key={step.number} step={step} mode={mode} ingredients={recipe.ingredients} scale={scale} media={data.step_media} className="py-6 first:pt-0 last:pb-0" />
             ))}
           </ol>
         </section>
@@ -391,6 +388,9 @@ export function RecipeDetail({ id }: { id: string }) {
         onConfirm={remove}
       />
       <SimilarModal open={similarOpen} onClose={() => setSimilarOpen(false)} recipeId={recipe.id} recipeTitle={recipe.title} onStarted={setSimilarRun} />
+      {focus && (
+        <FocusMode title={recipe.title} steps={recipe.steps} ingredients={recipe.ingredients} scale={scale} media={data.step_media} mode={mode} onToggleMode={toggleMode} onClose={closeFocus} />
+      )}
     </div>
   );
 }

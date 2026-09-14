@@ -1,9 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <!-- Palate favicon: the brand star (an eight-spoked asterisk) in olive on ivory paper. -->
-  <rect width="64" height="64" rx="14" fill="#f9f8f3"/>
+  <!-- Palate favicon: the brand star (an eight-spoked asterisk) in olive, on its own, no tile. -->
   <g transform="translate(32 32)" fill="#879443">
     <g id="spoke">
-      <path d="M0 -26 C 4.2 -26 6.2 -20.5 5 -12.5 L 2.2 -2.5 L -2.2 -2.5 L -5 -12.5 C -6.2 -20.5 -4.2 -26 0 -26 Z"/>
+      <path d="M0 -30 C 4.8 -30 7.2 -23.5 5.8 -14.5 L 2.5 -3 L -2.5 -3 L -5.8 -14.5 C -7.2 -23.5 -4.8 -30 0 -30 Z"/>
     </g>
     <use href="#spoke" transform="rotate(45)"/>
     <use href="#spoke" transform="rotate(90)"/>
@@ -12,6 +11,6 @@
     <use href="#spoke" transform="rotate(225)"/>
     <use href="#spoke" transform="rotate(270)"/>
     <use href="#spoke" transform="rotate(315)"/>
-    <circle r="5.5"/>
+    <circle r="6.5"/>
   </g>
 </svg>

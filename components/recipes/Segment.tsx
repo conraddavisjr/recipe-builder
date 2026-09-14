@@ -2,7 +2,8 @@
 
 import { createElement } from "react";
 import { SEGMENT_STYLES, equipmentIcon } from "@/lib/icons";
-import type { Step, StepSegment } from "@/lib/types";
+import type { Ingredient, Step, StepSegment } from "@/lib/types";
+import { quantityLabel } from "@/lib/ingredientMatch";
 
 /**
  * Two renderings of the same tagged step data.
@@ -39,19 +40,42 @@ const PUNCT_START = /^[,.;:!?)\]]/;
  * space follows a segment unless the next one starts with punctuation, so
  * "sake, mirin" never becomes "sake , mirin".
  */
-export function StepProse({ segments, mode = "calm" }: { segments: StepSegment[]; mode?: SegmentMode }) {
+export function StepProse({
+  segments,
+  mode = "calm",
+  ingredients,
+  scale = 1,
+}: {
+  segments: StepSegment[];
+  mode?: SegmentMode;
+  /** When given, tagged ingredient chips carry their scaled quantity. */
+  ingredients?: Ingredient[];
+  scale?: number;
+}) {
   return (
     <>
       {segments.map((seg, i) => {
         const next = segments[i + 1];
         const spaceAfter = Boolean(next) && !(next.kind === "text" && PUNCT_START.test(next.text.trimStart())) && !/\s$/.test(seg.text);
-        return <Segment key={i} segment={seg} mode={mode} spaceAfter={spaceAfter} />;
+        const quantity = mode === "tagged" && seg.kind === "ingredient" && ingredients ? quantityLabel(seg.text, ingredients, scale) : null;
+        return <Segment key={i} segment={seg} mode={mode} spaceAfter={spaceAfter} quantity={quantity} />;
       })}
     </>
   );
 }
 
-export function Segment({ segment, mode = "calm", spaceAfter = true }: { segment: StepSegment; mode?: SegmentMode; spaceAfter?: boolean }) {
+export function Segment({
+  segment,
+  mode = "calm",
+  spaceAfter = true,
+  quantity = null,
+}: {
+  segment: StepSegment;
+  mode?: SegmentMode;
+  spaceAfter?: boolean;
+  /** Scaled amount shown inside a tagged ingredient chip, e.g. "1 tsp". */
+  quantity?: string | null;
+}) {
   const trailing = spaceAfter ? " " : "";
   if (segment.kind === "text") return <span>{segment.text.trimStart() === segment.text ? segment.text : segment.text.trimStart()}{trailing}</span>;
 
@@ -67,6 +91,11 @@ export function Segment({ segment, mode = "calm", spaceAfter = true }: { segment
         >
           <Icon size={13} strokeWidth={2.25} aria-label={style.label} />
           {segment.text}
+          {quantity && (
+            <span className="tabular-nums font-normal opacity-75" aria-label={`amount ${quantity}`}>
+              · {quantity}
+            </span>
+          )}
         </span>
         {trailing}
       </>

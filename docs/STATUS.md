@@ -128,3 +128,11 @@ Built:
 - `lib/images/resize.ts`: sharp variants; `uploadImageSet` in the handlers writes native + variants for recipe photos, step stills and ingredient art. `deleteRecipes` removes variants too.
 - `components/ui/Pic.tsx` replaces every generated-image `<img>` (cards, hero and gallery thumbs, similar rows, group covers and rows, shopping rows, step figures, ingredient tiles). Inspiration photos are user uploads behind signed URLs and stay as they were.
 - `scripts/backfill-image-sizes.mjs`: idempotent one-time variant generation for existing storage objects (run once against the hosted project).
+
+## Cooking view, tagged quantities, favicon (2026-09-13)
+
+Built:
+- Focus mode on the detail page (chip in the Method header and an icon in the sticky row): the method alone, full screen, no nav or sidebar, steps in two columns from 768px up, Escape to close, screen wake lock where the browser allows.
+- `components/recipes/StepItem.tsx` renders a step for both the page and focus mode.
+- "Show tags" chips for ingredients now carry the scaled amount ("ground cumin · 1 tsp", "garlic · 4 cloves", "salt · to taste"); `lib/ingredientMatch.ts` matches a step phrase to an ingredient (longest alias wins) and stays quiet when the phrase already states a quantity. Tested. `formatQuantity` moved to `lib/quantity.ts`.
+- Favicon is the bare olive star again (no ivory tile); the Apple touch icon keeps its opaque tile because iOS requires one.

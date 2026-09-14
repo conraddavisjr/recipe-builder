@@ -10,7 +10,7 @@ import type { ConsolidatedLine } from "@/lib/groups";
 import type { RecipeCard as RecipeCardData } from "@/lib/types";
 import { api } from "@/lib/client/api";
 import { announceCartChange } from "@/lib/client/cartEvents";
-import { formatQuantity } from "@/components/recipes/IngredientRow";
+import { formatQuantity } from "@/lib/quantity";
 import { useChecklist } from "@/components/ui/Checklist";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 

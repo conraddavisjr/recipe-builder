@@ -10,7 +10,7 @@ import { summarize } from "@/lib/shopping";
 import { api } from "@/lib/client/api";
 import { announceCartChange } from "@/lib/client/cartEvents";
 import { addedLabel } from "@/lib/client/format";
-import { formatQuantity } from "@/components/recipes/IngredientRow";
+import { formatQuantity } from "@/lib/quantity";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 interface Payload {
